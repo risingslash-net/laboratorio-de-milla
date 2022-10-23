@@ -1,0 +1,1 @@
+dotnet new bepinex5plugin -n GreetingsAvalice -T net35 -U 5.6.3

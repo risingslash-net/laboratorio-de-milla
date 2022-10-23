@@ -1,0 +1,1 @@
+If you're getting started with your first mod, you'll want to start with the BepInEx Basic Plugin tutorial here: https://docs.bepinex.dev/articles/dev_guide/plugin_tutorial/1_setup.html
