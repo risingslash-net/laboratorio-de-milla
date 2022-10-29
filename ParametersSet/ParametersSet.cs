@@ -11,6 +11,8 @@ namespace RisingSlash.FP2Mods.ParametersSet
         private ConfigEntry<string> configGreeting;
         private ConfigEntry<bool> configDisplayGreeting;
         
+        private ConfigEntry<string> configLastKnownScene;
+        
         private string activeSceneName = "";
         private string previousSceneName = "";
         
@@ -20,7 +22,7 @@ namespace RisingSlash.FP2Mods.ParametersSet
             InitConfigs();
             
             Logger.LogInfo($"PluginParametersSet {MyPluginInfo.PLUGIN_GUID} is loaded!");
-            Logger.LogInfo($"The value of VALUE in config file is VALUE.");
+            Logger.LogInfo($"The value of {configGreeting.Definition.Key} in config file is {configGreeting.Value}.");
         }
 
         private void InitConfigs()
@@ -34,6 +36,11 @@ namespace RisingSlash.FP2Mods.ParametersSet
                 "DisplayGreeting",
                 true,
                 "Whether or not to show the greeting text");
+            
+            configLastKnownScene = Config.Bind("General",      // The section under which the option is shown
+                "LastKnownScene",  // The key of the configuration option in the configuration file
+                "Zao Land", // The default value
+                "The scene name of the last scene that was active in-game before closing."); // Description of the option to show in the config file
         }
 
         private void Update()
@@ -44,6 +51,8 @@ namespace RisingSlash.FP2Mods.ParametersSet
             {
                 Logger.LogInfo($"Scene name changed from {previousSceneName} to {activeSceneName}.");
                 Logger.LogInfo($"Saving last scene name to config file.");
+
+                configLastKnownScene.Value = activeSceneName;
             }
         }
     }
