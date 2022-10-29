@@ -75,13 +75,6 @@ namespace RisingSlash.FP2Mods.QuickBootToLevel
                 OnFirstUpdate();
                 firstUpdate = true;
             }
-
-            if (countUpdates % 180 == 0)
-            {
-                OnFirstUpdate();
-            }
-
-            countUpdates++;
         }
 
         public static void GoToMainMenuNoLogos()
