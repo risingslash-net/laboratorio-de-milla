@@ -16,7 +16,6 @@ namespace RisingSlash.FP2Mods.QuickBootToLevel
         private ConfigEntry<bool> configShowTransitionWipe;
 
         private bool firstUpdate = false;
-        private int countUpdates = 0;
 
         private void Awake()
         {
