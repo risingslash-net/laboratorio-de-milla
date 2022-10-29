@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerUpSpawner", "PowerUpSp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RisingSlashCommon", "RisingSlashCommon\RisingSlashCommon.csproj", "{70F06238-2345-4B17-B29E-1A04BD7F8D89}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{35DC1A49-C9D0-4C77-8CEC-9ED6264A69AC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

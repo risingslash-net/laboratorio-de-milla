@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using System;
+using BepInEx;
 using BepInEx.Configuration;
 using RisingSlash.FP2Mods.RisingSlashCommon;
 using UnityEngine;
@@ -11,21 +12,92 @@ namespace RisingSlash.FP2Mods.PowerUpSpawner
     {
         public static ConfigEntry<string> SpawnPowerup;
         public static bool hotkeysLoaded = false;
+
+        public static FPPlayer currentPlayer = null;
+        public static ItemFuel itemFuelReference = null;
         private void Awake()
         {
             // RisingSlashCommon startup logic
-            Logger.LogInfo($"RisingSlashCommon {MyPluginInfo.PLUGIN_GUID} is loaded! Initializing configs.");
-            InitConfigs();
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} is loaded! Initializing configs.");
+            try
+            {
+                InitConfigs();
+            } 
+            catch (Exception e)
+            {
+                LogExceptionError(e);
+            }
         }
-        
+
+        public void Update()
+        {
+            if (!hotkeysLoaded)
+            {
+                return;
+            }
+
+            if (CustomControls.GetButtonDown(SpawnPowerup))
+            {
+                Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} Hotkey pressed. Attempting to spawn powerup.");
+                try
+                {
+                    Vector2 powerupOffset = Vector2.zero; // Maybe should scrape the values for this from the player?
+                    
+                    currentPlayer = FPStage.currentStage.GetPlayerInstance_FPPlayer();
+                    // This flag indicates if the object was given a valid index position in the stage's list of FP objects.
+                    // The object will have all kinds of strange behaviors if we don't make sure it gets set properly.
+                    bool powerupObjectValidated = false;
+                    GameObject powerupInstance = FPStage.InstantiateFPBaseObject(GetItemFuelReference().gameObject, out powerupObjectValidated);
+                    
+                    // This step is easy to forget. Don't.
+                    FPStage.ValidateStageListPos(GetItemFuelReference());
+                    
+                    powerupInstance.transform.position = currentPlayer.transform.position + new Vector3(powerupOffset.x, powerupOffset.y, 0f);
+                }
+                catch (Exception e)
+                {
+                    ConvenienceMethods.LogExceptionError(e);
+                }
+            }
+        }
+
+        private void LogExceptionError(Exception e)
+        {
+            Logger.LogError($"{MyPluginInfo.PLUGIN_GUID} Threw an exception:\r\n{e.Message}\r\n{e.StackTrace}\r\n");
+        }
+
+        public ItemFuel GetItemFuelReference()
+        {
+            // If we already have a live reference, returning it is much faster than searching the scene for one.
+            if (itemFuelReference != null)
+            {
+                return itemFuelReference;
+            }
+            
+            // We don't care where the fuel/powerup item is, we just want one to copy as fast as possible.
+            itemFuelReference = GameObject.FindObjectOfType<ItemFuel>();
+            
+            // Somehow we couldn't find a reference in the scene, but we know the PlayerSpawnPoint should have one if it exists.
+            // Slow to double-try this. Consider removing?
+            if (itemFuelReference == null)
+            {
+                itemFuelReference = GameObject.FindObjectOfType<PlayerSpawnPoint>().powerup;
+            }
+
+            return itemFuelReference;
+        }
+
         private void InitConfigs()
         {
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} InitConfigs");
             InitConfigsCustomHotkeys();
         }
 
         private void InitConfigsCustomHotkeys()
         {
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} InitConfigsCustomHotkeys");
             SpawnPowerup = CreateEntryAndBindHotkey("SpawnPowerup", "Backspace");
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} ...after the first binding.");
             //KeyCode.Backspace
 
             /*
@@ -94,6 +166,7 @@ namespace RisingSlash.FP2Mods.PowerUpSpawner
             PHKRebindAllHotkeys = CreateEntryAndBindHotkey("PHKRebindAllHotkeys", "Pause");*/
 
             hotkeysLoaded = true;
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} Hotkeys loaded.");
         }
 
         public ConfigEntry<string> CreateEntryAndBindHotkey(string identifier,
