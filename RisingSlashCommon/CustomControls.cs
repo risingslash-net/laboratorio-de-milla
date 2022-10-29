@@ -39,7 +39,7 @@ public class CustomControls : MonoBehaviour
         }
         else if (ce.Value == null)
         {
-            LocalLog.LogInfo(String.Format("ce's is set, but value appears to be null: {0} -> {1}", ce.Definition.Key, ce.Value));
+            LocalLog.LogInfo(String.Format("ce exists and is set, but value appears to be null: {0} -> {1}", ce.Definition.Key, ce.Value));
             return false;
         }
 
@@ -55,7 +55,7 @@ public class CustomControls : MonoBehaviour
         }
         else if (ce.Value == null)
         {
-            LocalLog.LogInfo(String.Format("ce's is set, but value appears to be null: {0} -> {1}", ce.Definition.Key, ce.Value));
+            LocalLog.LogInfo(String.Format("ce exists and  is set, but value appears to be null: {0} -> {1}", ce.Definition.Key, ce.Value));
             return false;
         }
 
