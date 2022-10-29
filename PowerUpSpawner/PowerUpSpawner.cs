@@ -48,6 +48,7 @@ namespace RisingSlash.FP2Mods.PowerUpSpawner
                     // The object will have all kinds of strange behaviors if we don't make sure it gets set properly.
                     bool powerupObjectValidated = false;
                     GameObject powerupInstance = FPStage.InstantiateFPBaseObject(GetItemFuelReference().gameObject, out powerupObjectValidated);
+                    Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} Spawned.");
                     
                     // This step is easy to forget. Don't.
                     FPStage.ValidateStageListPos(GetItemFuelReference());
@@ -69,10 +70,12 @@ namespace RisingSlash.FP2Mods.PowerUpSpawner
         public ItemFuel GetItemFuelReference()
         {
             // If we already have a live reference, returning it is much faster than searching the scene for one.
+            /*
             if (itemFuelReference != null)
             {
                 return itemFuelReference;
             }
+            */
             
             // We don't care where the fuel/powerup item is, we just want one to copy as fast as possible.
             itemFuelReference = GameObject.FindObjectOfType<ItemFuel>();
@@ -97,7 +100,6 @@ namespace RisingSlash.FP2Mods.PowerUpSpawner
         {
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} InitConfigsCustomHotkeys");
             SpawnPowerup = CreateEntryAndBindHotkey("SpawnPowerup", "Backspace");
-            Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} ...after the first binding.");
             //KeyCode.Backspace
 
             /*
