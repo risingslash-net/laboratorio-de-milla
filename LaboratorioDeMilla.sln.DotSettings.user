@@ -1,5 +1,8 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CCode_005Crisingslash_002Dnet_005Claboratorio_005Fde_005Fmilla_005CFreedomPlanet2_002EGameLibs_005CAssembly_002DCSharp_002Edll/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2f592e48_002Df55a_002D4410_002D8942_002D6fe6f900ab87_0023PowerUpSpawner/@EntryIndexedValue">True</s:Boolean>
+	
+	
 	
 	
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=dfffd793_002Da633_002D43c2_002D8d49_002Dccbe3f47771e_0023GreetingsAvalice/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
