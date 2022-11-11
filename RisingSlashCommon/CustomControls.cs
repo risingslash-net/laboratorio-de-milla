@@ -176,4 +176,16 @@ public class CustomControls : MonoBehaviour
 
         return strControlListing;
     }
+    
+    public static ConfigEntry<string> CreateEntryAndBindHotkey(string identifier,
+        string default_value, ConfigFile conf)
+    {
+        var configHotkey = conf.Bind("Keybinds",      // The section under which the option is shown
+            identifier,  // The key of the configuration option in the configuration file
+            default_value, // The default value
+            $"A custom input binding for {identifier}"); // Description of the option to show in the config file
+        //FP2TrainerCustomHotkeys.Add(melonPrefEntry);
+        CustomControls.Add(configHotkey);
+        return configHotkey;
+    }
 }
