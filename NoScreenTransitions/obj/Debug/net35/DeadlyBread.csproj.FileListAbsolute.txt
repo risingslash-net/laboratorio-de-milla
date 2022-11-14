@@ -1,0 +1,15 @@
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\bin\Debug\net35\DeadlyBread.dll
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\bin\Debug\net35\DeadlyBread.pdb
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\bin\Debug\net35\Assembly-CSharp.dll
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\bin\Debug\net35\RisingSlashCommon.dll
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\bin\Debug\net35\Assembly-CSharp-firstpass.dll
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\bin\Debug\net35\RisingSlashCommon.pdb
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\DeadlyBread.csproj.AssemblyReference.cache
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\MyPluginInfo.cs
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\DeadlyBread.GeneratedMSBuildEditorConfig.editorconfig
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\DeadlyBread.AssemblyInfoInputs.cache
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\DeadlyBread.AssemblyInfo.cs
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\DeadlyBread.csproj.CoreCompileInputs.cache
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\DeadlyBread.csproj.CopyComplete
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\DeadlyBread.dll
+D:\Code\risingslash-net\laboratorio_de_milla\DeadlyBread\obj\Debug\net35\DeadlyBread.pdb
