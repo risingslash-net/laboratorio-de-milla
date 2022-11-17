@@ -129,6 +129,10 @@ namespace RisingSlash.FP2Mods.PlayableMerga
                     {
                         Act_Jump(merga);
                     }
+                    if (CustomControls.GetButtonUp(PHKJump))
+                    {
+                        Act_FastFall(merga);
+                    }
                     Handle360Movement(merga);
                 }
                 
@@ -299,8 +303,9 @@ namespace RisingSlash.FP2Mods.PlayableMerga
         {
             if (merga.onGround)
             {
+                merga.velocity.x = merga.groundVel;
                 merga.groundVel = 0.0f;
-                merga.velocity.x = 0.0f;
+                
                 merga.velocity.y = 9.1f;
                 merga.onGround = false;
                 merga.SetPlayerAnimation("Jumping");
@@ -312,6 +317,15 @@ namespace RisingSlash.FP2Mods.PlayableMerga
             }
         }
 
+        public static void Act_FastFall(PlayerBossMerga merga)
+        {
+            if (merga.velocity.y > -0.375f)
+            {
+                merga.velocity.y = -0.375f;
+                merga.SetPlayerAnimation("Jumping_Loop");
+            }
+        }
+        
         public static void State_PlayerDirectControl()
         {
             

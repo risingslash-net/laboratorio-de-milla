@@ -46,6 +46,22 @@ public class CustomControls : MonoBehaviour
         return InputControl.GetButtonDown(DictHotkeyPrefToKeyMappings[ce], true);
     }
     
+    public static bool GetButtonUp(ConfigEntry<string> ce)
+    {
+        if (ce == null)
+        {
+            LocalLog.LogInfo(String.Format("ce appears to be null: {0}", ce));
+            return false;
+        }
+        else if (ce.Value == null)
+        {
+            LocalLog.LogInfo(String.Format("ce exists and is set, but value appears to be null: {0} -> {1}", ce.Definition.Key, ce.Value));
+            return false;
+        }
+
+        return InputControl.GetButtonUp(DictHotkeyPrefToKeyMappings[ce], true);
+    }
+    
     public static bool GetButton(ConfigEntry<string> ce)
     {
         if (ce == null)
