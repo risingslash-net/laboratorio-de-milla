@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj": {}
+    "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/PlayableMerga.csproj": {}
   },
   "projects": {
-    "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj": {
+    "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/PlayableMerga.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj",
-        "projectName": "net.risingslash.fp2mods.risingslashcommon",
-        "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj",
+        "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/PlayableMerga.csproj",
+        "projectName": "net.risingslash.fp2mods.playablemerga",
+        "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/PlayableMerga.csproj",
         "packagesPath": "/home/ann/.nuget/packages/",
-        "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/obj/",
+        "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/ann/.nuget/NuGet/NuGet.Config"
@@ -26,7 +26,11 @@
         "frameworks": {
           "net35": {
             "targetAlias": "net35",
-            "projectReferences": {}
+            "projectReferences": {
+              "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj": {
+                "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -78,14 +82,14 @@
         }
       }
     },
-    "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj": {
+    "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
-        "projectName": "net.risingslash.fp2mods.timerprotector",
-        "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
+        "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj",
+        "projectName": "net.risingslash.fp2mods.risingslashcommon",
+        "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj",
         "packagesPath": "/home/ann/.nuget/packages/",
-        "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/obj/",
+        "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/ann/.nuget/NuGet/NuGet.Config"
@@ -100,11 +104,7 @@
         "frameworks": {
           "net35": {
             "targetAlias": "net35",
-            "projectReferences": {
-              "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj": {
-                "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj"
-              }
-            }
+            "projectReferences": {}
           }
         },
         "warningProperties": {

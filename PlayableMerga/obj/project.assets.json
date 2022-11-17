@@ -493,11 +493,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
-      "projectName": "net.risingslash.fp2mods.timerprotector",
-      "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
+      "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/PlayableMerga.csproj",
+      "projectName": "net.risingslash.fp2mods.playablemerga",
+      "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/PlayableMerga.csproj",
       "packagesPath": "/home/ann/.nuget/packages/",
-      "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/obj/",
+      "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/ann/.nuget/NuGet/NuGet.Config"

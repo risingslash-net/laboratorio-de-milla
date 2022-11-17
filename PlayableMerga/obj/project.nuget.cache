@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ZArhly4KlXE5+2Vtfwsi89jFpO2gMthCCrecCqO189ari1XGhHplUMMMzP5qvoGOyFOyHb1WIvwghHC0yagqrA==",
+  "dgSpecHash": "tVoKORxhHNYRy+BdcZhbVAiEJUfuPA4JRoik8K2ckx7Qn4lIIi4tsDe787VxaHV7I2zvAtQnCulDu0PlM+SCPg==",
   "success": true,
-  "projectFilePath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
+  "projectFilePath": "/home/ann/RiderProjects/laboratorio-de-milla/PlayableMerga/PlayableMerga.csproj",
   "expectedPackageFiles": [
     "/home/ann/.nuget/packages/bepinex.analyzers/1.0.8/bepinex.analyzers.1.0.8.nupkg.sha512",
     "/home/ann/.nuget/packages/bepinex.autoplugin/1.1.0/bepinex.autoplugin.1.1.0.nupkg.sha512",
