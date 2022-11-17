@@ -16,6 +16,9 @@ namespace RisingSlash.FP2Mods.PlayableMerga
         public static ConfigEntry<string> PHKAttack2;
         public static ConfigEntry<string> PHKAttack3;
         public static ConfigEntry<string> PHKAttack4;
+        public static ConfigEntry<string> PHKMoveLeft;
+        public static ConfigEntry<string> PHKMoveRight;
+        public static ConfigEntry<string> PHKJump;
         public static bool hotkeysLoaded = false;
 
         public static FPPlayer currentPlayer = null;
@@ -105,13 +108,50 @@ namespace RisingSlash.FP2Mods.PlayableMerga
                     ConvenienceMethods.LogExceptionError(e);
                 }
             }
+            
+            
+            try
+            {
+                RefreshMergaIfNeeded();
+                if (CustomControls.GetButton(PHKMoveLeft))
+                {
+                    foreach (var merga in pbMerga)
+                    {
+                        RunLeft(merga);
+                    }
+                }
+                else if (CustomControls.GetButton(PHKMoveRight))
+                {
+                    foreach (var merga in pbMerga)
+                    {
+                        RunRight(merga);
+                    }
+                }
+
+                if (CustomControls.GetButtonDown(PHKJump))
+                {
+                    foreach (var merga in pbMerga)
+                    {
+                        Act_Jump(merga);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ConvenienceMethods.LogExceptionError(e);
+            }
         }
+        
 
         public static void RefreshMergaIfNeeded()
         {
             if (pbMerga == null || pbMerga.Length < 1)
             {
                 pbMerga = GameObject.FindObjectsOfType<PlayerBossMerga>();
+                if (pbMerga.Length > 0 &&  FPCamera.stageCamera != null)
+                {
+                    FPCamera.stageCamera.target = pbMerga[0];
+                }
             }
         }
 
@@ -156,6 +196,12 @@ namespace RisingSlash.FP2Mods.PlayableMerga
             PHKAttack2 = CreateEntryAndBindHotkey("PHKAttack2", "Alpha2");
             PHKAttack3 = CreateEntryAndBindHotkey("PHKAttack3", "Alpha3");
             PHKAttack4 = CreateEntryAndBindHotkey("PHKAttack4", "Alpha4");
+            
+            
+            
+            PHKMoveLeft = CreateEntryAndBindHotkey("PHKMoveLeft", "A");
+            PHKMoveRight = CreateEntryAndBindHotkey("PHKMoveRight", "D");
+            PHKJump = CreateEntryAndBindHotkey("PHKJump", "W");
             //KeyCode.Backspace
 
             /*
@@ -237,6 +283,65 @@ namespace RisingSlash.FP2Mods.PlayableMerga
             //FP2TrainerCustomHotkeys.Add(melonPrefEntry);
             CustomControls.Add(configHotkey);
             return configHotkey;
+        }
+
+        public static void RunLeft(PlayerBossMerga merga)
+        {
+            //merga.groundVel -= 3f;
+            merga.direction = FPDirection.FACING_LEFT;
+            HandleGeneralRun(merga);
+        }
+        public static void RunRight(PlayerBossMerga merga)
+        {
+            merga.direction = FPDirection.FACING_RIGHT;
+            HandleGeneralRun(merga);
+        }
+        public static void Act_Jump(PlayerBossMerga merga)
+        {
+            merga.velocity.y = 6f;
+        }
+
+        public static void State_PlayerDirectControl()
+        {
+            
+        }
+
+        public static void HandleGeneralRun(PlayerBossMerga merga)
+        {
+            merga.state = new FPObjectState(State_PlayerDirectControl);
+            
+            if (merga.direction == FPDirection.FACING_LEFT)
+            {
+                if ((double) merga.groundVel > -(double) merga.topSpeed)
+                {
+                    merga.groundVel -= merga.acceleration * FPStage.deltaTime;
+                }
+                else
+                {
+                    merga.groundVel = -merga.topSpeed;
+                    merga.SetPlayerAnimation("TopSpeed");
+                }
+            }
+            else if (merga.direction == FPDirection.FACING_RIGHT)
+            {
+                if ((double) merga.groundVel < (double) merga.topSpeed)
+                {
+                    merga.groundVel += merga.acceleration * FPStage.deltaTime;
+                }
+                else
+                {
+                    merga.groundVel = merga.topSpeed;
+                    merga.SetPlayerAnimation("TopSpeed");
+                }
+            }
+            float num1 = Mathf.Abs(merga.groundVel) / (merga.deceleration * 2f);
+            float num2 = Mathf.Abs(merga.groundVel) / 2f * num1;
+            float num3 = merga.targetPlayer.position.x + merga.targetPlayer.velocity.x * num1;
+            if ((UnityEngine.Object) merga.targetPlayer != (UnityEngine.Object) null && ((double) Mathf.Abs(merga.groundVel) >= (double) merga.topSpeed || merga.persistentChase) && (merga.direction == FPDirection.FACING_LEFT && (double) num3 >= (double) merga.position.x - (double) num2 - 180.0 && (double) num3 <= (double) merga.position.x - (double) num2 - 80.0 || merga.direction == FPDirection.FACING_RIGHT && (double) num3 >= (double) merga.position.x + (double) num2 + 80.0 && (double) num3 <= (double) merga.position.x + (double) num2 + 180.0 || (UnityEngine.Object) merga.colliderWall != (UnityEngine.Object) null))
+            {
+                merga.SetPlayerAnimation("AttackRun");
+                //merga.genericFlag = true;
+            }
         }
     }
 }
