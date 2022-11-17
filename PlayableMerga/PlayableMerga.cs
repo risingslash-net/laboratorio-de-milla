@@ -290,15 +290,31 @@ namespace RisingSlash.FP2Mods.PlayableMerga
             //merga.groundVel -= 3f;
             merga.direction = FPDirection.FACING_LEFT;
             HandleGeneralRun(merga);
+            Handle360Movement(merga);
         }
         public static void RunRight(PlayerBossMerga merga)
         {
             merga.direction = FPDirection.FACING_RIGHT;
             HandleGeneralRun(merga);
+            Handle360Movement(merga);
         }
         public static void Act_Jump(PlayerBossMerga merga)
         {
-            merga.velocity.y = 6f;
+            if (merga.onGround)
+            {
+                merga.groundVel = 0.0f;
+                merga.velocity.x = 0.0f;
+                merga.velocity.y = 9.1f;
+                merga.onGround = false;
+                merga.SetPlayerAnimation("Jumping");
+                if ((UnityEngine.Object) merga.hotspot != (UnityEngine.Object) null)
+                {
+                    merga.hotspot.followTargetX = true;
+                    merga.hotspot.followTargetY = true;
+                }
+            }
+
+            Handle360Movement(merga);
         }
 
         public static void State_PlayerDirectControl()
@@ -342,6 +358,12 @@ namespace RisingSlash.FP2Mods.PlayableMerga
                 merga.SetPlayerAnimation("AttackRun");
                 //merga.genericFlag = true;
             }
+        }
+
+        public static void Handle360Movement(PlayerBossMerga merga)
+        {
+            merga.Process360Movement();
+            merga.angle = merga.groundAngle;
         }
     }
 }
