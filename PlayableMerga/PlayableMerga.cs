@@ -113,28 +113,27 @@ namespace RisingSlash.FP2Mods.PlayableMerga
             try
             {
                 RefreshMergaIfNeeded();
-                if (CustomControls.GetButton(PHKMoveLeft))
+                
+                foreach (var merga in pbMerga)
                 {
-                    foreach (var merga in pbMerga)
+                    if (CustomControls.GetButton(PHKMoveLeft))
                     {
                         RunLeft(merga);
                     }
-                }
-                else if (CustomControls.GetButton(PHKMoveRight))
-                {
-                    foreach (var merga in pbMerga)
+                    else if (CustomControls.GetButton(PHKMoveRight))
                     {
                         RunRight(merga);
                     }
-                }
 
-                if (CustomControls.GetButtonDown(PHKJump))
-                {
-                    foreach (var merga in pbMerga)
+                    if (CustomControls.GetButtonDown(PHKJump))
                     {
                         Act_Jump(merga);
                     }
+                    Handle360Movement(merga);
                 }
+                
+                
+                
             }
             catch (Exception e)
             {
@@ -290,13 +289,11 @@ namespace RisingSlash.FP2Mods.PlayableMerga
             //merga.groundVel -= 3f;
             merga.direction = FPDirection.FACING_LEFT;
             HandleGeneralRun(merga);
-            Handle360Movement(merga);
         }
         public static void RunRight(PlayerBossMerga merga)
         {
             merga.direction = FPDirection.FACING_RIGHT;
             HandleGeneralRun(merga);
-            Handle360Movement(merga);
         }
         public static void Act_Jump(PlayerBossMerga merga)
         {
@@ -313,8 +310,6 @@ namespace RisingSlash.FP2Mods.PlayableMerga
                     merga.hotspot.followTargetY = true;
                 }
             }
-
-            Handle360Movement(merga);
         }
 
         public static void State_PlayerDirectControl()
@@ -362,6 +357,8 @@ namespace RisingSlash.FP2Mods.PlayableMerga
 
         public static void Handle360Movement(PlayerBossMerga merga)
         {
+            merga.position.y += merga.velocity.y * FPStage.deltaTime;
+            merga.velocity.y -= 0.375f * FPStage.deltaTime;
             merga.Process360Movement();
             merga.angle = merga.groundAngle;
         }
