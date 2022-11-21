@@ -45,14 +45,10 @@
           "MonoMod.RuntimeDetour": "21.12.13.1"
         },
         "compile": {
-          "lib/net35/0Harmony.dll": {
-            "related": ".xml"
-          }
+          "lib/net35/0Harmony.dll": {}
         },
         "runtime": {
-          "lib/net35/0Harmony.dll": {
-            "related": ".xml"
-          }
+          "lib/net35/0Harmony.dll": {}
         }
       },
       "Microsoft.NETFramework.ReferenceAssemblies/1.0.2": {
@@ -92,14 +88,10 @@
           "System"
         ],
         "compile": {
-          "lib/net35/MonoMod.RuntimeDetour.dll": {
-            "related": ".xml"
-          }
+          "lib/net35/MonoMod.RuntimeDetour.dll": {}
         },
         "runtime": {
-          "lib/net35/MonoMod.RuntimeDetour.dll": {
-            "related": ".xml"
-          }
+          "lib/net35/MonoMod.RuntimeDetour.dll": {}
         }
       },
       "MonoMod.Utils/21.12.13.1": {
@@ -111,14 +103,10 @@
           "System"
         ],
         "compile": {
-          "lib/net35/MonoMod.Utils.dll": {
-            "related": ".xml"
-          }
+          "lib/net35/MonoMod.Utils.dll": {}
         },
         "runtime": {
-          "lib/net35/MonoMod.Utils.dll": {
-            "related": ".xml"
-          }
+          "lib/net35/MonoMod.Utils.dll": {}
         }
       },
       "UnityEngine.Modules/5.6.3": {
@@ -488,24 +476,33 @@
     ]
   },
   "packageFolders": {
-    "/home/ann/.nuget/packages/": {}
+    "C:\\Users\\Carli\\.nuget\\packages\\": {},
+    "C:\\Microsoft\\Xamarin\\NuGet": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
+      "projectUniqueName": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\TimerProtector\\TimerProtector.csproj",
       "projectName": "net.risingslash.fp2mods.timerprotector",
-      "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
-      "packagesPath": "/home/ann/.nuget/packages/",
-      "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/obj/",
+      "projectPath": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\TimerProtector\\TimerProtector.csproj",
+      "packagesPath": "C:\\Users\\Carli\\.nuget\\packages\\",
+      "outputPath": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\TimerProtector\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Microsoft\\Xamarin\\NuGet",
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+      ],
       "configFilePaths": [
-        "/home/ann/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Carli\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net35"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {},
         "https://nuget.bepinex.dev/v3/index.json": {}
       },
@@ -513,8 +510,8 @@
         "net35": {
           "targetAlias": "net35",
           "projectReferences": {
-            "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj": {
-              "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj"
+            "D:\\Code\\risingslash-net\\laboratorio_de_milla\\RisingSlashCommon\\RisingSlashCommon.csproj": {
+              "projectPath": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\RisingSlashCommon\\RisingSlashCommon.csproj"
             }
           }
         }
@@ -564,7 +561,7 @@
             "version": "[5.6.3, )"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/dotnet6-6.0.110/sdk/6.0.110/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.202\\RuntimeIdentifierGraph.json"
       }
     }
   }

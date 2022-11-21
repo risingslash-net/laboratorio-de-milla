@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using UnityEngine.SceneManagement;
 
 namespace RisingSlash.FP2Mods.RisingSlashCommon
 {
@@ -8,12 +9,22 @@ namespace RisingSlash.FP2Mods.RisingSlashCommon
     {
         //private ConfigEntry<string> configGreeting;
         //private ConfigEntry<bool> configDisplayGreeting;
+
+        public string previousSceneName = "";
+        public string currentSceneName = "";
         
         
         private void Awake()
         {
             // RisingSlashCommon startup logic
             Logger.LogInfo($"RisingSlashCommon {MyPluginInfo.PLUGIN_GUID} is loaded!");
+        }
+
+        public void Update()
+        {
+            previousSceneName = currentSceneName;
+            currentSceneName = SceneManager.GetActiveScene().name;
+            ConvenienceMethods.bHasSceneChanged = (previousSceneName != currentSceneName);
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using RisingSlash.FP2Mods.RisingSlashCommon;
 using UnityEngine;
 using UnityEngineInternal;
+using Random = System.Random;
 
 namespace RisingSlash.FP2Mods.PlayableMerga
 {
@@ -16,6 +18,7 @@ namespace RisingSlash.FP2Mods.PlayableMerga
         public static ConfigEntry<string> PHKAttack2;
         public static ConfigEntry<string> PHKAttack3;
         public static ConfigEntry<string> PHKAttack4;
+        public static ConfigEntry<string> PHKSpawnRandomBosses;
         public static ConfigEntry<string> PHKMoveLeft;
         public static ConfigEntry<string> PHKMoveRight;
         public static ConfigEntry<string> PHKJump;
@@ -25,6 +28,10 @@ namespace RisingSlash.FP2Mods.PlayableMerga
         public static ItemFuel itemFuelReference = null;
 
         public static PlayerBossMerga[] pbMerga;
+        public static FPBossHud[] bossHuds;
+
+        public static List<GameObject> BossInstanceCache;
+        public static List<GameObject> BossInstanceHealthBarCache;
         private void Awake()
         {
             // RisingSlashCommon startup logic
@@ -41,6 +48,12 @@ namespace RisingSlash.FP2Mods.PlayableMerga
 
         public void Update()
         {
+            if (ConvenienceMethods.HasSceneChanged())
+            {
+                RefreshMergaIfNeeded();
+                RefreshHealthbarsIfNeeded();
+            }
+
             if (!hotkeysLoaded)
             {
                 return;
@@ -157,6 +170,38 @@ namespace RisingSlash.FP2Mods.PlayableMerga
                 }
             }
         }
+        
+        public static void RefreshHealthbarsIfNeeded()
+        {
+            if (bossHuds == null || bossHuds.Length < 1)
+            {
+                bossHuds = GameObject.FindObjectsOfType<FPBossHud>();
+            }
+        }
+
+        public static void SpawnRandomBoss()
+        {
+            if (BossInstanceCache != null && BossInstanceCache.Count > 0)
+            {
+                var indBossToSpawn = UnityEngine.Random.RandomRangeInt(0, BossInstanceCache.Count);
+                var goBoss = GameObject.Instantiate(BossInstanceCache[indBossToSpawn]);
+                var goBossHud = GameObject.Instantiate(BossInstanceHealthBarCache[indBossToSpawn]);
+                
+                goBoss.SetActive(true);
+                goBossHud.SetActive(true);
+
+                var bossEneBase = goBoss.GetComponent<FPBaseEnemy>();
+
+                goBossHud.GetComponent<FPBossHud>().targetBoss = bossEneBase;
+
+                var fpp = FPStage.currentStage.GetPlayerInstance();
+                if (fpp != null)
+                {
+                    bossEneBase.position = new Vector2(fpp.position.x + 128, fpp.position.y);
+                }
+
+            }
+        }
 
         private void LogExceptionError(Exception e)
         {
@@ -199,6 +244,7 @@ namespace RisingSlash.FP2Mods.PlayableMerga
             PHKAttack2 = CreateEntryAndBindHotkey("PHKAttack2", "Alpha2");
             PHKAttack3 = CreateEntryAndBindHotkey("PHKAttack3", "Alpha3");
             PHKAttack4 = CreateEntryAndBindHotkey("PHKAttack4", "Alpha4");
+            PHKSpawnRandomBosses = CreateEntryAndBindHotkey("PHKSpawnRandomBosses", "Alpha0");
             
             
             

@@ -1,14 +1,16 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CCode_005Crisingslash_002Dnet_005Claboratorio_005Fde_005Fmilla_005CFreedomPlanet2_002EGameLibs_005CAssembly_002DCSharp_002Edll/@EntryIndexedValue">True</s:Boolean>
-	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/CustomBuildToolPath/@EntryValue">/usr/lib/dotnet/dotnet6-6.0.110/sdk/6.0.110/MSBuild.dll</s:String>
-	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/DotNetCliExePath/@EntryValue">/usr/lib/dotnet/dotnet6-6.0.110/dotnet</s:String>
+	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/CustomBuildToolPath/@EntryValue">C:\Program Files\dotnet\sdk\6.0.202\MSBuild.dll</s:String>
+	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/DotNetCliExePath/@EntryValue">C:\Program Files\dotnet\dotnet.exe</s:String>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2f592e48_002Df55a_002D4410_002D8942_002D6fe6f900ab87_0023PowerUpSpawner/@EntryIndexedValue">True</s:Boolean>
-	
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b5eae1c5_002Dfca5_002D4af1_002D8bc4_002D2c716b00840b_0023QuickBootToLevel/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b9f9ce97_002D4390_002D45f4_002Daa4b_002Ded2452bcc8dd_0023TimerProtector/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c886beb4_002D60d2_002D4d8d_002Da03e_002D0d023e7ecbeb_0023DeadlyBread/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=72225322_002D22ee_002D4077_002D903e_002D913f44350a31_0023PlayableBossGong/@EntryIndexedValue">True</s:Boolean>
 	
 	
 	
 	
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=dfffd793_002Da633_002D43c2_002D8d49_002Dccbe3f47771e_0023GreetingsAvalice/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	
+	
+	
+	
+	
+	</wpf:ResourceDictionary>

@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayableMerga", "PlayableMe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoScreenTransitions", "NoScreenTransitions\NoScreenTransitions.csproj", "{4E0F22BA-2292-40FB-B851-B7CE3EF9CBBE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitScreenCamera", "SplitScreenCamera\SplitScreenCamera.csproj", "{C988A702-C139-4C32-BF12-908CDF13CF50}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{4E0F22BA-2292-40FB-B851-B7CE3EF9CBBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E0F22BA-2292-40FB-B851-B7CE3EF9CBBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E0F22BA-2292-40FB-B851-B7CE3EF9CBBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C988A702-C139-4C32-BF12-908CDF13CF50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C988A702-C139-4C32-BF12-908CDF13CF50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C988A702-C139-4C32-BF12-908CDF13CF50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C988A702-C139-4C32-BF12-908CDF13CF50}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{41E99DD5-C76D-4018-A699-376C07B1D63A} = {35DC1A49-C9D0-4C77-8CEC-9ED6264A69AC}

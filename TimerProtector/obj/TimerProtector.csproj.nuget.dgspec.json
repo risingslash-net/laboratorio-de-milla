@@ -1,25 +1,32 @@
 {
   "format": 1,
   "restore": {
-    "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj": {}
+    "D:\\Code\\risingslash-net\\laboratorio_de_milla\\TimerProtector\\TimerProtector.csproj": {}
   },
   "projects": {
-    "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj": {
+    "D:\\Code\\risingslash-net\\laboratorio_de_milla\\RisingSlashCommon\\RisingSlashCommon.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj",
+        "projectUniqueName": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\RisingSlashCommon\\RisingSlashCommon.csproj",
         "projectName": "net.risingslash.fp2mods.risingslashcommon",
-        "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj",
-        "packagesPath": "/home/ann/.nuget/packages/",
-        "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/obj/",
+        "projectPath": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\RisingSlashCommon\\RisingSlashCommon.csproj",
+        "packagesPath": "C:\\Users\\Carli\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\RisingSlashCommon\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Microsoft\\Xamarin\\NuGet",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "/home/ann/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Carli\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net35"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {},
           "https://nuget.bepinex.dev/v3/index.json": {}
         },
@@ -74,26 +81,33 @@
               "version": "[5.6.3, )"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/dotnet6-6.0.110/sdk/6.0.110/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.202\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj": {
+    "D:\\Code\\risingslash-net\\laboratorio_de_milla\\TimerProtector\\TimerProtector.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
+        "projectUniqueName": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\TimerProtector\\TimerProtector.csproj",
         "projectName": "net.risingslash.fp2mods.timerprotector",
-        "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/TimerProtector.csproj",
-        "packagesPath": "/home/ann/.nuget/packages/",
-        "outputPath": "/home/ann/RiderProjects/laboratorio-de-milla/TimerProtector/obj/",
+        "projectPath": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\TimerProtector\\TimerProtector.csproj",
+        "packagesPath": "C:\\Users\\Carli\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\TimerProtector\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Microsoft\\Xamarin\\NuGet",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "/home/ann/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Carli\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net35"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {},
           "https://nuget.bepinex.dev/v3/index.json": {}
         },
@@ -101,8 +115,8 @@
           "net35": {
             "targetAlias": "net35",
             "projectReferences": {
-              "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj": {
-                "projectPath": "/home/ann/RiderProjects/laboratorio-de-milla/RisingSlashCommon/RisingSlashCommon.csproj"
+              "D:\\Code\\risingslash-net\\laboratorio_de_milla\\RisingSlashCommon\\RisingSlashCommon.csproj": {
+                "projectPath": "D:\\Code\\risingslash-net\\laboratorio_de_milla\\RisingSlashCommon\\RisingSlashCommon.csproj"
               }
             }
           }
@@ -152,7 +166,7 @@
               "version": "[5.6.3, )"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/dotnet6-6.0.110/sdk/6.0.110/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.202\\RuntimeIdentifierGraph.json"
         }
       }
     }
