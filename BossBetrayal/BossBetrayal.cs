@@ -387,8 +387,16 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         {
             try
             {
+                if (CurrentActiveBossInstance != null)
+                {
+                    CurrentActiveBossInstance.SetActive(false);
+                    CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().enabled = false;
+                    Destroy(CurrentActiveBossInstance);
+                    CurrentActiveBossInstance = null;
+                }
+
                 CurrentActiveBossInstance = Instantiate(DonorBossInstance);
-                //SceneManager.MoveGameObjectToScene(CurrentActiveBossInstance, SceneManager.GetActiveScene());
+                SceneManager.MoveGameObjectToScene(CurrentActiveBossInstance, SceneManager.GetActiveScene());
                 CurrentActiveBossInstance.SetActive(true);
                 DontDestroyOnLoad(CurrentActiveBossInstance);
 
@@ -533,8 +541,20 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
             try
             {
+                var sceneChanged = false;
+                
+                previousSceneName = currentSceneName;
+                currentSceneName = SceneManager.GetActiveScene().name;
+                //if (ConvenienceMethods.bHasSceneChanged && !currentSceneName.Equals("Loading"))
+                sceneChanged = (!previousSceneName.Equals(currentSceneName) && !currentSceneName.Equals("Loading"));
+                if (sceneChanged)
+                {
+                    sLogger.LogInfo("Scene changed. We should see a second similar message when we reset the state.");
+                }
+                
                 if (CurrentActiveBossInstance != null )
                 {
+                    sLogger.LogInfo("Scene changed and CurrentActiveBossInstance is not null. Switching to StateWaitForPlayableLevel.");
                     FPCamera.SetCameraTarget(CurrentActiveBossInstance);
                     
                     //SerpForceUpdateIgnoreEnabled();
@@ -549,22 +569,16 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                         }
                     }
                 }
-                else
+                
+                if (sceneChanged)
                 {
-                    previousSceneName = currentSceneName;
-                    currentSceneName = SceneManager.GetActiveScene().name;
-                    //if (ConvenienceMethods.bHasSceneChanged && !currentSceneName.Equals("Loading"))
-                    if (!previousSceneName.Equals(currentSceneName) && !currentSceneName.Equals("Loading"))
-                    {
-                        // Attempt to instantiate the boss again.
-                        sLogger.LogInfo("Scene changed. Switching to StateWaitForPlayableLevel.");
-                        CurrentActiveBossInstance.SetActive(false);
-                        DestroyImmediate(CurrentActiveBossInstance);
-                        CurrentActiveBossInstance = null;
-                        //Destroy(CurrentActiveBossInstance);
-                        stateInit = false;
-                        CurrentState = StateWaitForPlayableLevel;
-                    }
+                    // Attempt to instantiate the boss again.
+                    sLogger.LogInfo("Scene changed: Switching to StateWaitForPlayableLevel.");
+                    CurrentActiveBossInstance.SetActive(false);
+                    Destroy(CurrentActiveBossInstance);
+                    CurrentActiveBossInstance = null;
+                    stateInit = false;
+                    CurrentState = StateWaitForPlayableLevel;
                 }
                 
                 if (forceNoEventFrames > 0)
@@ -636,6 +650,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         public static void SerpStartShooting(PlayerBossSerpentine serp)
         {
             serp.SetPlayerAnimation("Shooting");
+            //serp.animator.GetCurrentAnimatorStateInfo(0).
+            serp.Action_FireBlaster(serp.angle);
             //serp.state = serp.State_Shooting;
             SerpSetStateByPrivateMethodName(serp, "State_Shooting");
             serp.Action_PlaySoundUninterruptable(serp.sfxCharge);
@@ -697,6 +713,9 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         {
             var serp = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>();
             var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
+
+            NullifySounds(p1);
+
             serp.enabled = true;
             serp.activationMode = FPActivationMode.ALWAYS_ACTIVE;
             serp.enablePhysics = true;
@@ -744,6 +763,10 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 p1.attackSfx = 0;
 
                 serp.guardTime = p1.guardTime;
+                if (p1.currentAnimation.Equals("Guard"))
+                {
+                    serp.SetPlayerAnimation("Hover");
+                }
                 /*
                 if (serp.currentAnimation.Equals("Missile"))
                 {
@@ -769,34 +792,40 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             p1.GetInputFromPlayer1();
             serp.input = p1.input;
 
-            if (serp.input.attackHold ||  serp.input.attackPress)
+            if (serp.input.attackPress)
             {
                 if (serp.input.up)
                 {
                     serp.genericTimer = 1f;
-                    SerpSetStateByPrivateMethodName(serp, "State_DualCrash");
+                    //SerpSetStateByPrivateMethodName(serp, "State_DualCrash");
+                    SerpStartDualGround(serp);
                 }
-                else if (serp.input.up)
+                else if (serp.input.down)
                 {
                     serp.genericTimer = 1f;
-                    SerpSetStateByPrivateMethodName(serp, "State_DualCrashAir");
+                    //SerpSetStateByPrivateMethodName(serp, "State_DualCrashAir");
+                    SerpStartDualAir(serp);
                 }
-                else if (p1.input.attackPress)
+                else
                 {
                     serp.genericTimer = 1f;
                     //SerpSetStateByPrivateMethodName(serp, "State_Shooting");
                     SerpStartShooting(serp);
-                } 
-                else if (p1.input.specialPress)
-                {
-                    serp.genericTimer = 1f;
-                    SerpSetStateByPrivateMethodName(serp, "State_Missile");
                 }
-                else if (p1.acceleration * p1.groundVel < 0) // Is slowing down check.
-                {
-                    serp.genericTimer = 1;
-                    SerpSetStateByPrivateMethodName(serp, "State_Skid");
-                }
+            }
+            else if (serp.input.attackHold)
+            {
+                serp.genericTimer -= FPStage.deltaTime;
+            }
+            else if (serp.input.specialPress)
+            {
+                serp.SetPlayerAnimation("Missile");
+                serp.Action_FireRocket();
+            }
+            else if (p1.input.specialHold || p1.input.specialPress)
+            {
+                serp.genericTimer = 1f;
+                SerpSetStateByPrivateMethodName(serp, "State_Missile");
             }
             else
             {
@@ -807,58 +836,127 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     serp.genericTimer = 0;
                     SerpSetStateByPrivateMethodName(serp, "State_Dash");
                 }
-            }
-
-            /*
-            if (serp.input.attackPress && serp.input.up)
-            {
-                serp.genericTimer = 1f;
-                SerpSetStateByPrivateMethodName(serp, "State_DualCrash");
-            }
-            else if (p1.input.attackPress && p1.input.down)
-            {
-                serp.genericTimer = 1f;
-                SerpSetStateByPrivateMethodName(serp, "State_DualCrashAir");
-            }
-            else if (p1.input.attackPress)
-            {
-                serp.genericTimer = 1f;
-                //SerpSetStateByPrivateMethodName(serp, "State_Shooting");
-                SerpStartShooting(serp);
-            } 
-            else if (p1.input.specialPress)
-            {
-                serp.genericTimer = 1f;
-                SerpSetStateByPrivateMethodName(serp, "State_Missile");
-            }
-            else if (p1.currentAnimation == "Running" || p1.currentAnimation == "TopSpeed")
-            {
-                serp.genericTimer = 1;
-                SerpSetStateByPrivateMethodName(serp, "State_Dash");
-            }
-            else if (p1.acceleration * p1.groundVel < 0) // Is slowing down check.
-            {
-                serp.genericTimer = 1;
-                SerpSetStateByPrivateMethodName(serp, "State_Skid");
+                else if (p1.acceleration * p1.groundVel < 0 && Mathf.Abs(p1.groundVel) <= 2f) // Is slowing down check.
+                {
+                    serp.genericTimer = 1;
+                    SerpSetStateByPrivateMethodName(serp, "State_Skid");
+                }
+                else
+                {
+                    serp.genericTimer = 0;
+                    serp.state = StateDoNothing;
+                }
             }
             
-            */
-
-            /*
-            else if (p1.state == p1.State_Carol_Punch)
+            if (serp.currentAnimation == "Dual_Air" || serp.currentAnimation == "Dual_Air_Loop")
             {
-                //SerpSetStateByPrivateMethodName(serp, "State_Jumping");
-                SerpStartShooting(serp);
+                if (FPCollision.CheckTerrainOOBB(serp, serp.hbTerrainCheck))
+                {
+                    p1.velocity.y = 2f;
+                    p1.position.y = serp.position.y;
+                }
+                else
+                {
+                    p1.velocity.y = 0f;
+                    p1.position.y = serp.position.y;
+                }
             }
+        }
+
+        public static void NullifyPlayerSounds(FPPlayer fpp)
+        {
+            if (fpp.sfxJump == null)
+            {
+                return; // Exit this early if we think we've already nulled things out since this is loop-heavy.
+            }
+
+            fpp.sfxJump = null;
+
+            fpp.sfxDoubleJump = null;
+
+            fpp.sfxSkid = null;
+
+            fpp.sfxHurt = null;
+
+            fpp.sfxKO = null;
+
+            fpp.sfxRegen = null;
+
+            fpp.sfxLilacBlink = null;
+
+            fpp.sfxUppercut = null;
+
+            fpp.sfxBoostCharge = null;
+
+            fpp.sfxBoostLaunch = null;
+
+            fpp.sfxBigBoostLaunch = null;
+
+            fpp.sfxBoostRebound = null;
+
+            fpp.sfxBoostExplosion = null;
+
+            fpp.sfxDivekick1 = null;
+
+            fpp.sfxDivekick2 = null;
+
+            fpp.sfxCyclone = null;
+
+            fpp.sfxCarolAttack1 = null;
+
+            fpp.sfxCarolAttack2 = null;
+
+            fpp.sfxCarolAttack3 = null;
+
+            fpp.sfxPounce = null;
+
+            fpp.sfxWallCling = null;
+
+            fpp.sfxRolling = null;
+
+            fpp.sfxMillaShieldSummon = null;
+
+            fpp.sfxMillaShieldFire = null;
+
+            fpp.sfxMillaSuperShield = null;
+
+            fpp.sfxMillaCubeSpawn = null;
+
+            fpp.sfxShieldBlock = null;
+
+            fpp.sfxShieldHit = null;
+
+            fpp.sfxShieldBreak = null;
             
-            else if (p1.state == p1.State_Carol_JumpDiscThrow || p1.state == p1.State_Carol_JumpDiscWarp)
-            {
-                //SerpSetStateByPrivateMethodName(serp, "State_Jumping");
-                SerpStartDualGround(serp);
-            }
-            */
+            fpp.vaKO = null;
 
-            //state != new FPObjectState(State_Carol_Punch) && state != new FPObjectState(State_Carol_JumpDiscThrow)
+            NullAllClipsInArray(fpp.vaAttack);
+            NullAllClipsInArray(fpp.vaHardAttack);
+            NullAllClipsInArray(fpp.vaSpecialA);
+            NullAllClipsInArray(fpp.vaSpecialB);
+            NullAllClipsInArray(fpp.vaHit);
+            NullAllClipsInArray(fpp.vaIdle);
+            NullAllClipsInArray(fpp.vaRevive);
+            NullAllClipsInArray(fpp.vaStart);
+            NullAllClipsInArray(fpp.vaItemGet);
+            NullAllClipsInArray(fpp.vaClear);
+            NullAllClipsInArray(fpp.vaJackpotClear);
+            NullAllClipsInArray(fpp.vaLowDamageClear);
+            NullAllClipsInArray(fpp.vaExtra);
+            
+            fpp.sfxIdle = null;
+
+            fpp.sfxMove = null;
+                
+            fpp.bgmResults = null;
+        }
+    
+        public static void NullAllClipsInArray(AudioClip[] clips)
+        {
+            for (int i = 0; i < clips.Length; i++)
+            {
+                clips[i] = null;
+            }
         }
     }
 }
