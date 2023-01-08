@@ -47,6 +47,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
 
         public static float previousHealth = 0f;
+        public static float previousShieldHealth = 0f;
         
         private void Awake()
         {
@@ -407,7 +408,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     if (fpPlayerBase != null)
                     {
                         sLogger.LogInfo(
-                            "Found a player object. Moving the boss to that location and deactivating the old player.");
+                            "Found a player object. Moving the boss to that location and hiding the old player.");
                         CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().position =
                             new Vector2(fpPlayerBase.gameObject.transform.position.x,
                                 fpPlayerBase.gameObject.transform.position.y);
@@ -416,7 +417,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                         //fpPlayerBase.enabled = false;
 
                         playerBoss.enabled =  true;
-                        FPCamera.SetCameraTarget(CurrentActiveBossInstance);
+                        //FPCamera.SetCameraTarget(CurrentActiveBossInstance);
                         //FPStage.currentStage.SetPlayerInstance(CurrentActiveBossInstance);
                         FPStage.ValidateStageListPos(playerBoss);
                     }
@@ -535,7 +536,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         {
             if (!stateInit)
             {
-                forceNoEventFrames = 300;
+                //forceNoEventFrames = 300;
+                forceNoEventFrames = 0;
                 stateInit = true;
             }
 
@@ -554,8 +556,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 
                 if (CurrentActiveBossInstance != null )
                 {
-                    sLogger.LogInfo("Scene changed and CurrentActiveBossInstance is not null. Switching to StateWaitForPlayableLevel.");
-                    FPCamera.SetCameraTarget(CurrentActiveBossInstance);
+                    //FPCamera.SetCameraTarget(CurrentActiveBossInstance);
+                    // Note: Removed the camera retargeting because it seemed to bug things out?
                     
                     //SerpForceUpdateIgnoreEnabled();
                     
@@ -587,8 +589,10 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     FPStage.currentStage.disablePausing = false;
                     forceNoEventFrames--;
                     CurrentActiveBossInstance.SetActive(true);
-                    SerpSyncToCarol();
+                    
                 }
+                
+                SerpSyncToCarol();
             }
             catch (Exception e)
             {
@@ -605,7 +609,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             var serp = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>();
             if (serp.bgmBoss != null)
             {
-                FPAudio.PlayMusic(serp.bgmBoss);
+                //FPAudio.PlayMusic(serp.bgmBoss);
             }
             serp.Action_PlayVoice(serp.vaStart[UnityEngine.Random.Range(0, serp.vaStart.Length - 1)]);
             serp.isTalking = true;
@@ -616,7 +620,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             if (component != null)
             {
                 component.MoveIn();
-                component.hudPosition += new Vector2(-128, 64);
+                component.healthBarOffset += new Vector2(-128, 64+64+64+64);
             }
             if (serp.nextBoss != null)
             {
@@ -713,8 +717,13 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         {
             var serp = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>();
             var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
+            
+            serp.gameObject.SetActive(p1.gameObject.activeInHierarchy);
+            
+            FPStage.ValidateStageListPos(p1);
+            FPStage.ValidateStageListPos(serp);
 
-            NullifySounds(p1);
+            NullifyPlayerSounds(p1);
 
             serp.enabled = true;
             serp.activationMode = FPActivationMode.ALWAYS_ACTIVE;
@@ -728,11 +737,57 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 forceNoEventFrames++;
 
+                if (p1.state == p1.State_Carol_JumpDiscThrow)
+                {
+                    p1.state = p1.State_Carol_Roll;
+                }
+
+                if (p1.characterID == FPCharacterID.CAROL)
+                {
+                    p1.characterID = FPCharacterID.BIKECAROL;
+                    var swapCharacter = FPStage.player[(int)FPCharacterID.BIKECAROL];
+                    
+                    //p1.useSpecialItem = false;
+                    p1.characterID = swapCharacter.characterID;
+                    p1.topSpeed = swapCharacter.topSpeed;
+                    p1.acceleration = swapCharacter.acceleration;
+                    p1.deceleration = swapCharacter.deceleration;
+                    p1.airAceleration = swapCharacter.airAceleration;
+                    p1.skidDeceleration = swapCharacter.skidDeceleration;
+                    p1.skidThreshold = swapCharacter.skidThreshold;
+                    p1.gravityStrength = swapCharacter.gravityStrength;
+                    p1.jumpStrength = swapCharacter.jumpStrength;
+                    p1.jumpRelease = swapCharacter.jumpRelease;
+                    p1.energyRecoverRate = swapCharacter.energyRecoverRate;
+                    p1.energyRecoverRateCurrent = swapCharacter.energyRecoverRate;
+                    p1.climbingSpeed = swapCharacter.climbingSpeed;
+                    FPStage.DestroyStageObject(p1.carolJumpDisc);
+                    //p1.animator.runtimeAnimatorController = FPResources.animator[1];
+                    //p1.hasSwitchedAnimators = true;
+                    /*
+                    if (p1.childSprite != null)
+                    {
+                        p1.childSprite.childSprite.enabled = false;
+                    }
+                    p1.SetPlayerAnimation("Rolling");
+                    p1.animator.Play("Rolling");
+                    */
+                }
+                
+
                 //serp.health = 1000;
                 //serp.health = p1.health;
                 if (p1.health > previousHealth)
                 {
                     serp.health = p1.health * 10;
+                }
+                if (p1.shieldHealth > previousShieldHealth)
+                {
+                    serp.shieldHealth = p1.shieldHealth;
+                }
+                else
+                {
+                    p1.shieldHealth = serp.shieldHealth;
                 }
 
                 if (p1.health < previousHealth)
@@ -740,7 +795,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     serp.healthToFlinch = serp.health;
                     serp.invincibility = 240f;
                 }
-                
+
                 if (serp.healthToFlinch == serp.health) 
                 {
                     serp.healthToFlinch = 0;
@@ -750,6 +805,9 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
                 p1.health = serp.health / 10f;
                 previousHealth = p1.health;
+                
+                previousShieldHealth = p1.shieldHealth;
+                serp.shieldID = p1.shieldID;
                         
                 p1.childRender.enabled = false;
                 p1.GetComponent<Renderer>().enabled = false;
@@ -760,7 +818,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 p1.attackEnemyInvTime = 0f;
                 p1.attackKnockback.x = 0f;
                 p1.attackKnockback.y = 0f;
-                p1.attackSfx = 0;
+                //p1.attackSfx = 0;
 
                 serp.guardTime = p1.guardTime;
                 if (p1.currentAnimation.Equals("Guard"))
@@ -844,7 +902,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 else
                 {
                     serp.genericTimer = 0;
-                    serp.state = StateDoNothing;
+                    serp.state = State_Serp_Physics_Idle;
                 }
             }
             
@@ -863,12 +921,31 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
         }
 
+        public static void State_Serp_Physics_Idle()
+        {
+            var serp = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>();
+            var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
+            
+            if (serp.currentAnimation.Equals("Shooting"))
+            {
+                /*
+                if (serp.animator.GetCurrentAnimatorStateInfo(0).normalizedTime > 0.8f)
+                {
+                    (serp.animator.GetCurrentAnimatorStateInfo(0).normalizedTime -= (8f / 34f));
+                }
+                */
+                if (serp.animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
+                {
+                    serp.SetPlayerAnimation("Laugh");
+                }
+            }
+            
+            serp.Process360Movement();
+            serp.RotatePlayerUpright();
+        }
+
         public static void NullifyPlayerSounds(FPPlayer fpp)
         {
-            if (fpp.sfxJump == null)
-            {
-                return; // Exit this early if we think we've already nulled things out since this is loop-heavy.
-            }
 
             fpp.sfxJump = null;
 
@@ -929,6 +1006,17 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             fpp.sfxShieldBreak = null;
             
             fpp.vaKO = null;
+            
+            fpp.sfxIdle = null;
+
+            fpp.sfxMove = null;
+                
+            fpp.bgmResults = null;
+            
+            if (fpp.vaAttack[0] == null && fpp.vaStart[0] == null)
+            {
+                return; // Exit this early if we think we've already nulled things out since this is loop-heavy.
+            }
 
             NullAllClipsInArray(fpp.vaAttack);
             NullAllClipsInArray(fpp.vaHardAttack);
@@ -943,12 +1031,6 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             NullAllClipsInArray(fpp.vaJackpotClear);
             NullAllClipsInArray(fpp.vaLowDamageClear);
             NullAllClipsInArray(fpp.vaExtra);
-            
-            fpp.sfxIdle = null;
-
-            fpp.sfxMove = null;
-                
-            fpp.bgmResults = null;
         }
     
         public static void NullAllClipsInArray(AudioClip[] clips)
