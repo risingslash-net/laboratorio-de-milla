@@ -21,6 +21,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         private static ConfigEntry<string> configSerpBootupLevel;
         private static ConfigEntry<string> configBossToLoad;
         private static ConfigEntry<int> configSaveFileNumber;
+        private static ConfigEntry<int> configCharacterIDExtended;
         private static ConfigEntry<bool> configShowTransitionWipe;
 
         private static bool firstUpdate = false;
@@ -48,6 +49,9 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
         public static float previousHealth = 0f;
         public static float previousShieldHealth = 0f;
+        public static string previousAnimationName = "";
+
+        public static bool useEnergy = false;
         
         private void Awake()
         {
@@ -222,6 +226,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 1, // The default value
                 "The number of the save file you wish to use when quick-booting. Set this value to 0 to boot into a level with debug settings (no save file). Normally, this would be files 1-10, but can be longer if you have additional saves (from modding or otherwise). If you need to see your save files, they are stored at \"<AppData>\\LocalLow\\GalaxyTrail\\Freedom Planet 2\"."); // Description of the option to show in the config file
             
+            configCharacterIDExtended = Config.Bind("General",      // The section under which the option is shown
+                "CharacterIDExtended",  // The key of the configuration option in the configuration file
+                5, // The default value
+                "An integer value representing your currently selected character. Allows values beyond the canonical 0-4 IDs. You shouldn't need to change this manually. (5: Serpentine 6: Corazon 7: Kalaw 8: Unarmored Merga 9: Gong, 10 BFF)"); // Description of the option to show in the config file
+            
             configShowTransitionWipe = Config.Bind("General",      // The section under which the option is shown
                 "ShowTransitionWipe",  // The key of the configuration option in the configuration file
                 false, // The default value
@@ -282,6 +291,24 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 sLogger.LogInfo("Found boss instance. Making a cached copy.");
                 DonorBossInstance = Instantiate(DonorBossInstance);
+                
+                var preserveRocket = GameObject.Find("ProjectileRocket");
+                if (preserveRocket != null)
+                {
+                    DontDestroyOnLoad(preserveRocket);
+                }
+                
+                useEnergy = false;
+
+                var tempRocketGo = new GameObject();
+                var tempRocket = tempRocketGo.AddComponent<ProjectileRocket>();
+                
+                ProjectileRocket.classID = FPStage.RegisterObjectType(tempRocket, typeof(ProjectileRocket), 64);
+                tempRocket.objectID = ProjectileRocket.classID;
+
+                tempRocket.enabled = false;
+                GameObject.Destroy(tempRocketGo);
+                
                 DontDestroyOnLoad(DonorBossInstance);
                 DonorBossInstance.SetActive(false);
                 DonorBossInstance.GetComponent<PlayerBossSerpentine>().faction = "Player";
@@ -620,7 +647,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             if (component != null)
             {
                 component.MoveIn();
-                component.healthBarOffset += new Vector2(-128, 64+64+64+64);
+                component.healthBarOffset += new Vector2(-128-64, -64-64);
+                component.hudPosition.y += -64 - 64;
             }
             if (serp.nextBoss != null)
             {
@@ -686,6 +714,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             serp.SetPlayerAnimation("Dual_Air");
             SerpSetStateByPrivateMethodName(serp, "State_DualCrashAir");
             
+            /*
             Warning warning = (Warning)FPStage.CreateStageObject(Warning.classID, serp.position.x, serp.position.y);
             warning.parentObject = serp.gameObject;
             warning.warningBoxSize.x = 64f;
@@ -700,6 +729,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             warning.parentOffset.y = 0f;
             warning.SetupLayer();
             warning.SetupPosition();
+            */
+            
         }
         
         public static void SerpStartJump(PlayerBossSerpentine serp)
@@ -730,6 +761,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             serp.enablePhysics = true;
             serp.playerTerrainCheck = true;
             serp.position = p1.position;
+            serp.collisionLayer = p1.collisionLayer;
             
             serp.targetPlayer = FPStage.FindNearestPlayer(serp, 100000f);
 
@@ -742,7 +774,15 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     p1.state = p1.State_Carol_Roll;
                 }
 
-                if (p1.characterID == FPCharacterID.CAROL)
+                if (p1.state == p1.State_Victory)
+                {
+                    var jd = FindObjectOfType<CarolJumpDisc>();
+                    GameObject.Destroy(jd);
+                    p1.enabled = false;
+                    p1.enablePhysics = false;
+                }
+
+                else if (p1.characterID == FPCharacterID.CAROL && p1.state != p1.State_Victory)
                 {
                     p1.characterID = FPCharacterID.BIKECAROL;
                     var swapCharacter = FPStage.player[(int)FPCharacterID.BIKECAROL];
@@ -761,7 +801,9 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     p1.energyRecoverRate = swapCharacter.energyRecoverRate;
                     p1.energyRecoverRateCurrent = swapCharacter.energyRecoverRate;
                     p1.climbingSpeed = swapCharacter.climbingSpeed;
+                    
                     FPStage.DestroyStageObject(p1.carolJumpDisc);
+
                     //p1.animator.runtimeAnimatorController = FPResources.animator[1];
                     //p1.hasSwitchedAnimators = true;
                     /*
@@ -790,16 +832,19 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     p1.shieldHealth = serp.shieldHealth;
                 }
 
-                if (p1.health < previousHealth)
-                {
-                    serp.healthToFlinch = serp.health;
-                    serp.invincibility = 240f;
-                }
-
                 if (serp.healthToFlinch == serp.health) 
                 {
                     serp.healthToFlinch = 0;
                 }
+                
+                if (p1.health < previousHealth)
+                {
+                    serp.healthToFlinch = serp.health;
+                    serp.invincibility = 60f;
+                    serp.Action_Hurt();
+                }
+
+                
 
 
 
@@ -836,6 +881,18 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 {
                     serp.nextAttack = 0;
                 }
+
+                if (serp.health <= 0 && (p1.state != p1.State_KO && p1.state != p1.State_CrushKO))
+                {
+                    p1.health = -1;
+                    p1.state = p1.State_KO;
+                    p1.Action_Hurt();
+                }
+
+                if (p1.state == p1.State_CrushKO)
+                {
+                    serp.health = 0;
+                }
             }
 
             serp.direction = p1.direction;
@@ -854,18 +911,29 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 if (serp.input.up)
                 {
-                    serp.genericTimer = 1f;
-                    //SerpSetStateByPrivateMethodName(serp, "State_DualCrash");
-                    SerpStartDualGround(serp);
+                    
+                    if (p1.energy >= 100)
+                    {
+                        useEnergy = true;
+                        serp.genericTimer = 1f;
+                        //SerpSetStateByPrivateMethodName(serp, "State_DualCrash");
+                        SerpStartDualGround(serp);
+                    }
                 }
                 else if (serp.input.down)
                 {
-                    serp.genericTimer = 1f;
-                    //SerpSetStateByPrivateMethodName(serp, "State_DualCrashAir");
-                    SerpStartDualAir(serp);
+                    if (p1.energy >= 100)
+                    {
+                        useEnergy = true;
+                        serp.genericTimer = 1f;
+                        SerpStartDualAir(serp);
+                    }
+
+                    
                 }
                 else
                 {
+                    useEnergy = false;
                     serp.genericTimer = 1f;
                     //SerpSetStateByPrivateMethodName(serp, "State_Shooting");
                     SerpStartShooting(serp);
@@ -879,11 +947,13 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 serp.SetPlayerAnimation("Missile");
                 serp.Action_FireRocket();
+                useEnergy = false;
             }
             else if (p1.input.specialHold || p1.input.specialPress)
             {
-                serp.genericTimer = 1f;
-                SerpSetStateByPrivateMethodName(serp, "State_Missile");
+                //serp.genericTimer = 1f;
+                //SerpSetStateByPrivateMethodName(serp, "State_Missile");
+                useEnergy = false;
             }
             else
             {
@@ -893,16 +963,19 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 {
                     serp.genericTimer = 0;
                     SerpSetStateByPrivateMethodName(serp, "State_Dash");
+                    useEnergy = false;
                 }
                 else if (p1.acceleration * p1.groundVel < 0 && Mathf.Abs(p1.groundVel) <= 2f) // Is slowing down check.
                 {
                     serp.genericTimer = 1;
                     SerpSetStateByPrivateMethodName(serp, "State_Skid");
+                    useEnergy = false;
                 }
                 else
                 {
                     serp.genericTimer = 0;
                     serp.state = State_Serp_Physics_Idle;
+                    useEnergy = false;
                 }
             }
             
@@ -917,6 +990,21 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 {
                     p1.velocity.y = 0f;
                     p1.position.y = serp.position.y;
+                }
+            }
+            
+            if (serp.currentAnimation == "Dual_Air" || serp.currentAnimation == "Dual_Air_Loop" || serp.currentAnimation == "Dual_Ground")
+            {
+                useEnergy = true;
+
+                p1.energy -= FPStage.deltaTime;
+                serp.energy = p1.energy;
+                
+                if (p1.energy <= 0)
+                {
+                    SerpSetStateByPrivateMethodName(serp, "State_Dash");
+                    serp.genericTimer = 0;
+                    useEnergy = false;
                 }
             }
         }
@@ -939,6 +1027,28 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     serp.SetPlayerAnimation("Laugh");
                 }
             }
+            
+            if (!previousAnimationName.Equals(p1.currentAnimation))
+            {
+                if (p1.currentAnimation.Equals("Walking"))
+                {
+                    serp.SetPlayerAnimation("Walking");
+                }
+                if (p1.currentAnimation.Equals("Jumping"))
+                {
+                    serp.SetPlayerAnimation("Jumping");
+                }
+                if (p1.currentAnimation.Equals("Wall")
+                    || p1.currentAnimation.Contains("Climbing"))
+                {
+                    serp.SetPlayerAnimation("Hover");
+                }
+                if (p1.currentAnimation.Equals("Skidding"))
+                {
+                    serp.SetPlayerAnimation("Skidding");
+                }
+            }
+            previousAnimationName = p1.currentAnimation;
             
             serp.Process360Movement();
             serp.RotatePlayerUpright();
@@ -1011,12 +1121,18 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
             fpp.sfxMove = null;
                 
-            fpp.bgmResults = null;
+            fpp.bgmResults = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().bgmBoss;
+
+            fpp.audioChannel[4].mute = true;
+            fpp.audioChannel[5].mute = true;
             
+            
+            /*
             if (fpp.vaAttack[0] == null && fpp.vaStart[0] == null)
             {
                 return; // Exit this early if we think we've already nulled things out since this is loop-heavy.
             }
+            */
 
             NullAllClipsInArray(fpp.vaAttack);
             NullAllClipsInArray(fpp.vaHardAttack);
