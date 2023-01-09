@@ -1068,29 +1068,33 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             
             UpdateSerpAnimFromPlayer(p1, serp);
-            
-            
-            switch (serp.DamageCheck())
+
+            if (serp.invincibility <= 0 && serp.hitStun <= 0 && serp.guardTime <= 0)
             {
-                case 1:
-                    serp.flashTime = 2f;
-                    break;
-                case 2:
-                    serp.activationMode = FPActivationMode.ALWAYS_ACTIVE;
-                    serp.velocity.y = 4.5f;
-                    break;
-                case 4:
-                    serp.state = serp.State_Frozen;
-                    break;
+                switch (serp.DamageCheck())
+                {
+                    case 1:
+                        serp.flashTime = 2f;
+                        break;
+                    case 2:
+                        serp.activationMode = FPActivationMode.ALWAYS_ACTIVE;
+                        serp.velocity.y = 4.5f;
+                        break;
+                    case 4:
+                        serp.state = serp.State_Frozen;
+                        break;
+                }
             }
         }
 
         public static void UpdateSerpAnimFromPlayer(FPPlayer p1, PlayerBossSerpentine serp)
         {
-            if (p1.targetGimmick != null)
+            if (p1.state == p1.State_Ball
+                 || p1.state == p1.State_Ball_Inert
+                || p1.state == p1.State_Ball_Physics)
             {
-                //"In a snowball???"
-                serp.invincibility = 10f;
+                //"In a snowball / Rocket???"
+                serp.invincibility = 1f;
             }
             else
             {
