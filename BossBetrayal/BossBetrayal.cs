@@ -530,6 +530,10 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
         public static void AddPlayerComponents()
         {
+            //Deadcode. If you're making a separate new mod to make bosses auto-attack enemies, you can strip out this early return.
+            return;
+            
+            
             //var allEnemies = FPStage.GetActiveEnemies();
             // Not using ActiveEnemies here since that only works for enemies close enough to the player to be enabled and visible.
             FPPlayer fpp;
