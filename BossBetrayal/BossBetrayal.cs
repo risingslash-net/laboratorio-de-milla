@@ -826,10 +826,10 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
                 if (serp.health <= serp.healthToFlinch) 
                 {
+                    serp.Action_Hurt();
                     serp.healthToFlinch -= 10;
                     
                     //serp.invincibility = 60f;
-                    //serp.Action_Hurt();
                 }
                 
                 if (p1.health < previousHealth)
