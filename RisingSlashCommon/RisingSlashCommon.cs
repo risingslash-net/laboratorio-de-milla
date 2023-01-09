@@ -25,6 +25,11 @@ namespace RisingSlash.FP2Mods.RisingSlashCommon
             previousSceneName = currentSceneName;
             currentSceneName = SceneManager.GetActiveScene().name;
             ConvenienceMethods.bHasSceneChanged = (previousSceneName != currentSceneName);
+
+            if (SceneManipulationScheduler.MainScheduler == null)
+            {
+                SceneManipulationScheduler.MainScheduler = new SceneManipulationScheduler();
+            }
         }
     }
 }

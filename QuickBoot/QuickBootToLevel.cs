@@ -71,8 +71,12 @@ namespace RisingSlash.FP2Mods.QuickBootToLevel
         {
             if (!firstUpdate)
             {
-                OnFirstUpdate();
-                firstUpdate = true;
+                if (SceneManipulationScheduler.MainScheduler.RequestManipulateScene(this, -10))
+                {
+                    OnFirstUpdate();
+                    firstUpdate = true;
+                    SceneManipulationScheduler.MainScheduler.RequestComplete(this);
+                }
             }
         }
 

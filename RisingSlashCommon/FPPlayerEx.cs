@@ -44,6 +44,9 @@ public class FPPlayerEx : FPPlayer
         //while (FPStage.ForEach(NeeraFreeze.classID, objectRef)) // Object Ref being an FPBaseObject pointing to an enemy for the damage check.
         foreach (var ene in enemies)
         {
+            
+            //TODO: REMEMBER TO FIX THE AUTODAMAGE SCRIPT.
+            /*
             var renderer = ene.GetComponent<SpriteRenderer>();
             if (renderer != null)
             {
@@ -56,7 +59,7 @@ public class FPPlayerEx : FPPlayer
                         UnityEngine.Random.Range(-10f, 10f));
                     if (!ene.isHarmless)
                     {
-                        ene.HealthDrain(fPPlayer.attackPower,
+                        ene.HealthDrain(FPPlayer.attackPower,
                             fPPlayer.characterID); // Gotta grab this method and call it elsewise
                     }
 
@@ -71,6 +74,7 @@ public class FPPlayerEx : FPPlayer
                     FPAudio.PlayHitSfx(7);
                 }
             }
+            */
         }
     }
 }

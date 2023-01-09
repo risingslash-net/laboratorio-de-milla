@@ -54,6 +54,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         public static bool useEnergy = false;
 
         public static int buggedCounter = 0;
+
+        public static string requestSourceObject = "PlayableSerpentine";
         
         private void Awake()
         {
@@ -259,8 +261,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             if (!firstUpdate)
             {
-                OnFirstUpdateDonor();
-                firstUpdate = true;
+                if (SceneManipulationScheduler.MainScheduler.RequestManipulateScene(requestSourceObject, 10))
+                {
+                    OnFirstUpdateDonor();
+                    firstUpdate = true;
+                }
             }
             
             if (SceneManager.GetActiveScene().name.Equals(donorLevel))
@@ -377,6 +382,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     sLogger.LogInfo("Switching to StateWaitForPlayableLevel.");
                     stateInit = false;
                     CurrentState = StateWaitForPlayableLevel;
+                    SceneManipulationScheduler.MainScheduler.RequestComplete(requestSourceObject);
                 }
             }
             else if (currentSceneName.Equals(configSerpBootupLevel.Value))
@@ -386,6 +392,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 sLogger.LogInfo("Switching to Boss Instantiation State.");
                 stateInit = false;
                 CurrentState = StateInstanceTheBoss;
+                SceneManipulationScheduler.MainScheduler.RequestComplete(requestSourceObject);
             }
 
             return;

@@ -60,7 +60,9 @@ public static class FPPlayerUtils
         MethodInfo eneHealthDrain = enemy.GetType().GetMethod("HealthDrain", 
             BindingFlags.NonPublic | BindingFlags.Instance);
         //dynMethod.Invoke(this, new object[] { methodParams });
-        delFPEnemyHealthDrain = (FPObjectState) eneHealthDrain.CreateDelegate(typeof(FPObjectState), enemy);
+        
+        // TODO: The below line was temporarily dummied out to allow the build to buiild. I don't remember what it was for.
+        // delFPEnemyHealthDrain = (FPObjectState) eneHealthDrain.CreateDelegate(typeof(FPObjectState), enemy);
     }
 
 }
