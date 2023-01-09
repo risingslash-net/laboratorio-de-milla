@@ -971,6 +971,12 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 serp.SetPlayerAnimation("Jumping");
             }
+            else if (serp.input.guardPress && p1.guardTime <= 0)
+            {
+                serp.SetPlayerAnimation("TopSpeed");
+                serp.velocity.y = 0;
+                serp.velocity.x += (15f * Mathf.Sign(serp.velocity.x));
+            }
             else
             {
                 if (p1.currentAnimation == "Running" 
@@ -1047,8 +1053,36 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
 
             serp.Process360Movement();
-            serp.RotatePlayerUpright();
+            if (serp.onGround)
+            {
+                serp.ApplyGroundForces();
+                serp.angle = p1.angle;
+                serp.groundAngle = p1.groundAngle;
+                serp.angle = serp.groundAngle;
+            }
+            else
+            {
+                serp.ApplyAirForces();
+                serp.ApplyGravityForce();
+                serp.RotatePlayerUpright();
+            }
+            
             UpdateSerpAnimFromPlayer(p1, serp);
+            
+            
+            switch (serp.DamageCheck())
+            {
+                case 1:
+                    serp.flashTime = 2f;
+                    break;
+                case 2:
+                    serp.activationMode = FPActivationMode.ALWAYS_ACTIVE;
+                    serp.velocity.y = 4.5f;
+                    break;
+                case 4:
+                    serp.state = serp.State_Frozen;
+                    break;
+            }
         }
 
         public static void UpdateSerpAnimFromPlayer(FPPlayer p1, PlayerBossSerpentine serp)
@@ -1098,20 +1132,23 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 serp.direction = p1.direction;
             }
             
-            if (p1.currentAnimation.Equals("Swimming"))
+            if (p1.currentAnimation.Equals("Swimming") 
+                && !serp.currentAnimation.Equals("TopSpeed"))
             {
                 serp.SetPlayerAnimation("TopSpeed");
             }
             
-            else if (p1.currentAnimation.Equals("Victory"))
+            else if (p1.currentAnimation.Equals("Victory")
+                     && !serp.currentAnimation.Equals("Laugh"))
             {
                 serp.SetPlayerAnimation("Laugh");
             }
 
             if (!previousAnimationName.Equals(p1.currentAnimation))
             {
-                if (p1.currentAnimation.Equals("Wall")
+                if ((p1.currentAnimation.Equals("Wall")
                     || p1.currentAnimation.Contains("Climbing"))
+                    && !serp.currentAnimation.Equals("Hover"))
                 {
                     serp.SetPlayerAnimation("Hover");
                 }
