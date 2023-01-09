@@ -52,6 +52,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         public static string previousAnimationName = "";
 
         public static bool useEnergy = false;
+
+        public static int buggedCounter = 0;
         
         private void Awake()
         {
@@ -803,17 +805,6 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     p1.climbingSpeed = swapCharacter.climbingSpeed;
                     
                     FPStage.DestroyStageObject(p1.carolJumpDisc);
-
-                    //p1.animator.runtimeAnimatorController = FPResources.animator[1];
-                    //p1.hasSwitchedAnimators = true;
-                    /*
-                    if (p1.childSprite != null)
-                    {
-                        p1.childSprite.childSprite.enabled = false;
-                    }
-                    p1.SetPlayerAnimation("Rolling");
-                    p1.animator.Play("Rolling");
-                    */
                 }
                 
 
@@ -822,6 +813,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 if (p1.health > previousHealth)
                 {
                     serp.health = p1.health * 10;
+                    serp.healthToFlinch = serp.health - 10;
                 }
                 if (p1.shieldHealth > previousShieldHealth)
                 {
@@ -832,16 +824,22 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     p1.shieldHealth = serp.shieldHealth;
                 }
 
-                if (serp.healthToFlinch == serp.health) 
+                if (serp.health <= serp.healthToFlinch) 
                 {
-                    serp.healthToFlinch = 0;
+                    serp.healthToFlinch -= 10;
+                    
+                    //serp.invincibility = 60f;
+                    //serp.Action_Hurt();
                 }
                 
                 if (p1.health < previousHealth)
                 {
-                    serp.healthToFlinch = serp.health;
-                    serp.invincibility = 60f;
+                    /*
                     serp.Action_Hurt();
+                    */
+
+                    //serp.healthToFlinch = serp.health;
+                    //serp.Action_Hurt();
                 }
 
                 
@@ -863,6 +861,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 p1.attackEnemyInvTime = 0f;
                 p1.attackKnockback.x = 0f;
                 p1.attackKnockback.y = 0f;
+
+                serp.onGround = p1.onGround;
                 //p1.attackSfx = 0;
 
                 serp.guardTime = p1.guardTime;
@@ -870,23 +870,25 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 {
                     serp.SetPlayerAnimation("Hover");
                 }
-                /*
-                if (serp.currentAnimation.Equals("Missile"))
-                {
-                    serp.currentAnimation = "Shooting";
-                }
-                */
 
                 if (serp.nextAttack == 7)
                 {
                     serp.nextAttack = 0;
                 }
 
-                if (serp.health <= 0 && (p1.state != p1.State_KO && p1.state != p1.State_CrushKO))
+                if (serp.health <= 0 
+                    && serp.state != serp.State_Hurt
+                    && (p1.state != p1.State_KO && p1.state != p1.State_CrushKO && p1.state != p1.State_KO_Recover))
                 {
                     p1.health = -1;
                     p1.state = p1.State_KO;
                     p1.Action_Hurt();
+                }
+
+                if (p1.state == p1.State_KO_Recover)
+                {
+                    serp.health = p1.healthMax * 10;
+                    SerpSetStateByPrivateMethodName(serp, "State_Recover");
                 }
 
                 if (p1.state == p1.State_CrushKO)
@@ -903,11 +905,21 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 //SerpSetStateByPrivateMethodName(serp, "State_Jumping");
             }
             */
+            
+            UpdateSerpAnimFromPlayer(p1, serp);
 
             p1.GetInputFromPlayer1();
             serp.input = p1.input;
 
-            if (serp.input.attackPress)
+            if (serp.state == serp.State_Hurt)
+            {
+                // Can't act out of hurt frames.
+            }
+            else if (serp.state == serp.State_Init && serp.bossActivated)
+            {
+                serp.state = State_Serp_Physics_Idle;
+            }
+            else if (serp.input.attackPress)
             {
                 if (serp.input.up)
                 {
@@ -955,6 +967,10 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 //SerpSetStateByPrivateMethodName(serp, "State_Missile");
                 useEnergy = false;
             }
+            else if (serp.input.jumpPress && p1.onGround && !p1.currentAnimation.Equals("Swimming"))
+            {
+                serp.SetPlayerAnimation("Jumping");
+            }
             else
             {
                 if (p1.currentAnimation == "Running" 
@@ -962,15 +978,16 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     || (p1.onGround && (serp.input.left || serp.input.right)))
                 {
                     serp.genericTimer = 0;
-                    SerpSetStateByPrivateMethodName(serp, "State_Dash");
+                    //SerpSetStateByPrivateMethodName(serp, "State_Dash");
                     useEnergy = false;
                 }
+                /* Rewrite this to check against the player input, or check it after I've already set this animation myself.
                 else if (p1.acceleration * p1.groundVel < 0 && Mathf.Abs(p1.groundVel) <= 2f) // Is slowing down check.
                 {
                     serp.genericTimer = 1;
                     SerpSetStateByPrivateMethodName(serp, "State_Skid");
                     useEnergy = false;
-                }
+                }*/
                 else
                 {
                     serp.genericTimer = 0;
@@ -1002,7 +1019,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 
                 if (p1.energy <= 0)
                 {
-                    SerpSetStateByPrivateMethodName(serp, "State_Dash");
+                    //SerpSetStateByPrivateMethodName(serp, "State_Dash");
+                    serp.state = serp.State_Idle;
                     serp.genericTimer = 0;
                     useEnergy = false;
                 }
@@ -1027,31 +1045,78 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     serp.SetPlayerAnimation("Laugh");
                 }
             }
-            
-            if (!previousAnimationName.Equals(p1.currentAnimation))
+
+            serp.Process360Movement();
+            serp.RotatePlayerUpright();
+            UpdateSerpAnimFromPlayer(p1, serp);
+        }
+
+        public static void UpdateSerpAnimFromPlayer(FPPlayer p1, PlayerBossSerpentine serp)
+        {
+            if (p1.targetGimmick != null)
             {
-                if (p1.currentAnimation.Equals("Walking"))
+                //"In a snowball???"
+                serp.invincibility = 10f;
+            }
+            else
+            {
+                
+            }
+
+            if (p1.onGround
+                && !serp.input.attackPress
+                && !serp.input.attackHold
+                && !serp.input.specialPress
+                && !serp.input.specialHold
+                && (
+                    !serp.currentAnimation.Equals("Shooting")
+                    ))
+            {
+                if (Mathf.Abs(p1.groundVel) >= 6f) //14f
+                {
+                    serp.SetPlayerAnimation("TopSpeed");
+                }
+                else if (Mathf.Abs(p1.groundVel) < 6f 
+                         && Mathf.Abs(p1.groundVel) > 0.3f)
                 {
                     serp.SetPlayerAnimation("Walking");
                 }
-                if (p1.currentAnimation.Equals("Jumping"))
+                else if (Mathf.Abs(p1.groundVel) <= 0.3f)
                 {
-                    serp.SetPlayerAnimation("Jumping");
+                    serp.SetPlayerAnimation("Idle");
                 }
+
+                if (p1.groundVel > 0 && serp.input.left)
+                {
+                    serp.SetPlayerAnimation("Skidding");
+                }
+                else if (p1.groundVel < 0 && serp.input.right)
+                {
+                    serp.SetPlayerAnimation("Skidding");
+                }
+
+                serp.direction = p1.direction;
+            }
+            
+            if (p1.currentAnimation.Equals("Swimming"))
+            {
+                serp.SetPlayerAnimation("TopSpeed");
+            }
+            
+            else if (p1.currentAnimation.Equals("Victory"))
+            {
+                serp.SetPlayerAnimation("Laugh");
+            }
+
+            if (!previousAnimationName.Equals(p1.currentAnimation))
+            {
                 if (p1.currentAnimation.Equals("Wall")
                     || p1.currentAnimation.Contains("Climbing"))
                 {
                     serp.SetPlayerAnimation("Hover");
                 }
-                if (p1.currentAnimation.Equals("Skidding"))
-                {
-                    serp.SetPlayerAnimation("Skidding");
-                }
             }
             previousAnimationName = p1.currentAnimation;
-            
-            serp.Process360Movement();
-            serp.RotatePlayerUpright();
         }
 
         public static void NullifyPlayerSounds(FPPlayer fpp)
@@ -1162,5 +1227,5 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 /*
  *CustomDamageInstance
  *DamageCheck_
- * 
+ * ConfirmClassWithPoolTypeID
  */
