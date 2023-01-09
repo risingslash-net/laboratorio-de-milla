@@ -23,6 +23,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         private static ConfigEntry<int> configSaveFileNumber;
         private static ConfigEntry<int> configCharacterIDExtended;
         private static ConfigEntry<bool> configShowTransitionWipe;
+        
+        public static ConfigEntry<string> PHKToggleChatInput;
 
         private static bool firstUpdate = false;
 
@@ -239,6 +241,9 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 "ShowTransitionWipe",  // The key of the configuration option in the configuration file
                 false, // The default value
                 "Showing the black wipe transition looks cleaner and is more likely to work with built-in levels. Disable this when loading scenes from asset bundles."); // Description of the option to show in the config file
+            
+            PHKToggleChatInput = CustomControls.CreateEntryAndBindHotkey("PHKToggleChatInput", "Tab", Config);
+            
         }
 
         public static void StateDoNothing()
@@ -531,6 +536,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 stateInit = false;
                 CurrentState = Idle;
                 //stateInit = true;
+                ConvenienceMethods.ShowMessageAsBadge("Switching to Idle State");
             }
             return;
         }
@@ -633,6 +639,13 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 }
                 
                 SerpSyncToCarol();
+                
+                //DELETEME: 
+                
+                if (CustomControls.GetButtonDown(PHKToggleChatInput))
+                {
+                    ConvenienceMethods.ShowMessageAsBadge("This is a test.", "Boss Betrayal Debug Key:");
+                }
             }
             catch (Exception e)
             {
@@ -1280,4 +1293,12 @@ namespace RisingSlash.FP2Mods.BossBetrayal
  *CustomDamageInstance
  *DamageCheck_
  * ConfirmClassWithPoolTypeID
+ *
+ *
+ * Pause menu deactivating itself and instantiating another menu (controls menu) to take over. 
+ * case 2:
+						base.gameObject.SetActive(value: false);
+						Object.Instantiate(settingsMenu);
+						FPAudio.PlayMenuSfx(2);
+						break;
  */

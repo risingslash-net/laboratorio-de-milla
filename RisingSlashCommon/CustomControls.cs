@@ -11,6 +11,7 @@ public class CustomControls : MonoBehaviour
 {
     public static Dictionary<ConfigEntry<string>, KeyMapping> DictHotkeyPrefToKeyMappings;
     public static ManualLogSource LocalLog;
+    public static bool IgnoreStagePause = true;
     public void Start()
     {
         LocalLog = BepInEx.Logging.Logger.CreateLogSource("RisingSlashCustomControls");
@@ -22,16 +23,24 @@ public class CustomControls : MonoBehaviour
 
     public static void Add(ConfigEntry<string> ce)
     {
+        // Something I'm doing here seems to be responsible for the control rebind breakage.
         if (DictHotkeyPrefToKeyMappings == null)
         {
             DictHotkeyPrefToKeyMappings = new Dictionary<ConfigEntry<string>, KeyMapping>();
         }
         
-        DictHotkeyPrefToKeyMappings.Add(ce, InputControl.setKey(ce.Value, KeyboardInputFromString(ce.Value)));
+        // Seems to be specifically the InputControl.setKey...
+        //DictHotkeyPrefToKeyMappings.Add(ce, InputControl.setKey(ce.Value, KeyboardInputFromString(ce.Value)));
+        DictHotkeyPrefToKeyMappings.Add(ce, new KeyMapping(ce.Value, KeyboardInputFromString(ce.Value), null, null) );
     }
     
     public static bool GetButtonDown(ConfigEntry<string> ce)
     {
+        if (FPStage.state == FPStageState.STATE_PAUSED 
+            && !IgnoreStagePause)
+        {
+            return false;
+        }
         if (ce == null)
         {
             LocalLog.LogInfo(String.Format("ce appears to be null: {0}", ce));
@@ -48,6 +57,11 @@ public class CustomControls : MonoBehaviour
     
     public static bool GetButtonUp(ConfigEntry<string> ce)
     {
+        if (FPStage.state == FPStageState.STATE_PAUSED 
+            && !IgnoreStagePause)
+        {
+            return false;
+        }
         if (ce == null)
         {
             LocalLog.LogInfo(String.Format("ce appears to be null: {0}", ce));
@@ -64,6 +78,11 @@ public class CustomControls : MonoBehaviour
     
     public static bool GetButton(ConfigEntry<string> ce)
     {
+        if (FPStage.state == FPStageState.STATE_PAUSED 
+            && !IgnoreStagePause)
+        {
+            return false;
+        }
         if (ce == null)
         {
             LocalLog.LogInfo(String.Format("ce appears to be null: {0}", ce));
@@ -200,7 +219,6 @@ public class CustomControls : MonoBehaviour
             identifier,  // The key of the configuration option in the configuration file
             default_value, // The default value
             $"A custom input binding for {identifier}"); // Description of the option to show in the config file
-        //FP2TrainerCustomHotkeys.Add(melonPrefEntry);
         CustomControls.Add(configHotkey);
         return configHotkey;
     }
