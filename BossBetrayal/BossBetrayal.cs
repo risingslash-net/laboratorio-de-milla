@@ -42,6 +42,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         public static string donorLevel = "";
 
         public static GameObject DonorBossInstance;
+        public static Dictionary<string, GameObject> DictDonorBossInstances;
         public static GameObject CurrentActiveBossInstance;
         public static int forceNoEventFrames = 10;
         public static bool permaFollow = true;
@@ -310,6 +311,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         
         public static void StateCacheBossInstance()
         {
+            if (DictDonorBossInstances == null)
+            {
+                DictDonorBossInstances = new Dictionary<string, GameObject>();
+            }
+
             if (!stateInit)
             {
                 if (KnownInstanceIDs == null || KnownInstanceIDs.Count < 1)
@@ -324,6 +330,10 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 sLogger.LogInfo("Looking for Serp.");
                 DonorBossInstance = GameObject.Find("Boss Serpentine");
+                if (DonorBossInstance != null)
+                {
+                    DictDonorBossInstances.Add("serpentine", DonorBossInstance);
+                }
             }
             else if (configBossToLoad.Value.Equals("merga"))
             {
@@ -408,6 +418,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                                     DonorBossInstance = ene.gameObject;
                                 }
                             }
+                        }
+                        
+                        if (DonorBossInstance != null)
+                        {
+                            DictDonorBossInstances.Add("merga", DonorBossInstance);
                         }
                     }
                 }
@@ -664,6 +679,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             MethodInfo st_jumping = playerBoss.GetType().GetMethod(stateName, 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             //dynMethod.Invoke(this, new object[] { methodParams });
+            sLogger.LogInfo("MethodInfo: " + st_jumping.ToString());
             FPObjectState d_st_jumping;
             d_st_jumping = (FPObjectState) st_jumping.CreateDelegate(typeof(FPObjectState), playerBoss);
                         
@@ -671,6 +687,20 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             //merga.state = new FPObjectState(merga.State_RunAttack);
             //merga.state = new FPObjectState(st_run_attack);
             playerBoss.state = d_st_jumping;
+        }
+        
+        public static void PlayerBossSetPrivateFieldByName(PlayerBoss playerBoss, string fieldName, object newValue)
+        {
+            try
+            {
+                FieldInfo fl_name = playerBoss.GetType().GetField(fieldName, 
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                fl_name.SetValue(playerBoss, newValue);
+            }
+            catch (Exception e) 
+            {
+                ConvenienceMethods.LogExceptionError(e);
+            }
         }
         
         public static void SerpSetStateByPrivateFieldName(PlayerBossSerpentine serp, string fieldName, object newValue)
@@ -1434,6 +1464,161 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             previousAnimationName = p1.currentAnimation;
         }
+        
+        public static void UpdatePlayerBossAnimFromPlayer(FPPlayer p1, PlayerBoss playerBoss)
+        {
+            if (p1.state == p1.State_Ball
+                 || p1.state == p1.State_Ball_Inert
+                || p1.state == p1.State_Ball_Physics)
+            {
+                //"In a snowball / Rocket???"
+                playerBoss.invincibility = 2f;
+            }
+            else
+            {
+                
+            }
+
+            if (p1.onGround
+                && !playerBoss.input.attackPress
+                && !playerBoss.input.attackHold
+                && !playerBoss.input.specialPress
+                && !playerBoss.input.specialHold)
+            {
+                if (Mathf.Abs(p1.groundVel) >= playerBoss.topSpeed) //14f
+                {
+                    playerBoss.SetPlayerAnimation("TopSpeed");
+                }
+                else if (Mathf.Abs(p1.groundVel) < playerBoss.topSpeed 
+                         && Mathf.Abs(p1.groundVel) > 0.2f)
+                {
+                    playerBoss.SetPlayerAnimation("Running");
+                }
+                else if (Mathf.Abs(p1.groundVel) <= 0.2f)
+                {
+                    playerBoss.SetPlayerAnimation("Idle");
+                }
+
+                if (p1.groundVel > 0 && playerBoss.input.left)
+                {
+                    playerBoss.SetPlayerAnimation("Skidding");
+                }
+                else if (p1.groundVel < 0 && playerBoss.input.right)
+                {
+                    playerBoss.SetPlayerAnimation("Skidding");
+                }
+
+                playerBoss.direction = p1.direction;
+            }
+            
+            if (p1.currentAnimation.Equals("Swimming") 
+                && !playerBoss.currentAnimation.Equals("Dragonboost"))
+            {
+                playerBoss.SetPlayerAnimation("Dragonboost");
+            }
+            
+            else if (p1.currentAnimation.Equals("Victory")
+                     && !playerBoss.currentAnimation.Equals("BattleSignal"))
+            {
+                playerBoss.SetPlayerAnimation("BattleSignal");
+            }
+
+            if (!previousAnimationName.Equals(p1.currentAnimation))
+            {
+                if ((p1.currentAnimation.Equals("Wall")
+                    || p1.currentAnimation.Contains("Climbing"))
+                    && !playerBoss.currentAnimation.Equals("Hover"))
+                {
+                    playerBoss.SetPlayerAnimation("Hover");
+                }
+            }
+            previousAnimationName = p1.currentAnimation;
+
+            if (playerBoss.currentAnimation.Equals("BattleSignal")
+                && playerBoss.animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= (26f / 33f))
+            {
+                playerBoss.animator.speed = 0;
+            }
+        }
+        
+        public static void UpdateMergaAnimFromPlayer(FPPlayer p1, PlayerBossMerga playerBoss)
+        {
+            if (p1.state == p1.State_Ball
+                 || p1.state == p1.State_Ball_Inert
+                || p1.state == p1.State_Ball_Physics)
+            {
+                //"In a snowball / Rocket???"
+                playerBoss.invincibility = 2f;
+            }
+            else
+            {
+                
+            }
+
+            if (p1.onGround
+                && !playerBoss.input.attackPress
+                && !playerBoss.input.attackHold
+                && !playerBoss.input.specialPress
+                && !playerBoss.input.specialHold
+                && !playerBoss.attackStats.Method.Name.Equals("AttackStats_Slash")
+                && !playerBoss.attackStats.Method.Name.Equals("AttackStats_Dragonboost")
+                && !playerBoss.attackStats.Method.Name.Equals("AttackStats_RunAttack"))
+            {
+                if (Mathf.Abs(p1.groundVel) >= 9f) //14f
+                {
+                    playerBoss.SetPlayerAnimation("TopSpeed");
+                }
+                else if (Mathf.Abs(p1.groundVel) < 9f 
+                         && Mathf.Abs(p1.groundVel) > 0.2f)
+                {
+                    playerBoss.SetPlayerAnimation("Running");
+                }
+                else if (Mathf.Abs(p1.groundVel) <= 0.2f)
+                {
+                    playerBoss.SetPlayerAnimation("Idle");
+                }
+
+                if (p1.groundVel > 0 && playerBoss.input.left)
+                {
+                    playerBoss.SetPlayerAnimation("Skidding");
+                }
+                else if (p1.groundVel < 0 && playerBoss.input.right)
+                {
+                    playerBoss.SetPlayerAnimation("Skidding");
+                }
+
+                playerBoss.direction = p1.direction;
+            }
+            
+            if (p1.currentAnimation.Equals("Swimming") 
+                && !playerBoss.currentAnimation.Equals("Dragonboost"))
+            {
+                playerBoss.SetPlayerAnimation("Dragonboost");
+            }
+            
+            else if (p1.currentAnimation.Equals("Victory")
+                     && !playerBoss.currentAnimation.Equals("BattleSignal"))
+            {
+                playerBoss.SetPlayerAnimation("BattleSignal");
+            }
+
+            if (!previousAnimationName.Equals(p1.currentAnimation))
+            {
+                if ((p1.currentAnimation.Equals("Wall")
+                    || p1.currentAnimation.Contains("Climbing"))
+                    && !playerBoss.currentAnimation.Equals("Hover"))
+                {
+                    playerBoss.SetPlayerAnimation("Hover");
+                }
+            }
+            previousAnimationName = p1.currentAnimation;
+
+            if (playerBoss.currentAnimation.Equals("BattleSignal")
+                && playerBoss.animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= (26f / 33f))
+            {
+                playerBoss.animator.speed = 0;
+            }
+        }
 
         public static void NullifyPlayerSounds(FPPlayer fpp)
         {
@@ -1441,94 +1626,94 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 fpp.sfxJump = null;
 
-            fpp.sfxDoubleJump = null;
+                fpp.sfxDoubleJump = null;
 
-            fpp.sfxSkid = null;
+                fpp.sfxSkid = null;
 
-            fpp.sfxHurt = null;
+                fpp.sfxHurt = null;
 
-            fpp.sfxKO = null;
+                fpp.sfxKO = null;
 
-            fpp.sfxRegen = null;
+                fpp.sfxRegen = null;
 
-            fpp.sfxLilacBlink = null;
+                fpp.sfxLilacBlink = null;
 
-            fpp.sfxUppercut = null;
+                fpp.sfxUppercut = null;
 
-            fpp.sfxBoostCharge = null;
+                fpp.sfxBoostCharge = null;
 
-            fpp.sfxBoostLaunch = null;
+                fpp.sfxBoostLaunch = null;
 
-            fpp.sfxBigBoostLaunch = null;
+                fpp.sfxBigBoostLaunch = null;
 
-            fpp.sfxBoostRebound = null;
+                fpp.sfxBoostRebound = null;
 
-            fpp.sfxBoostExplosion = null;
+                fpp.sfxBoostExplosion = null;
 
-            fpp.sfxDivekick1 = null;
+                fpp.sfxDivekick1 = null;
 
-            fpp.sfxDivekick2 = null;
+                fpp.sfxDivekick2 = null;
 
-            fpp.sfxCyclone = null;
+                fpp.sfxCyclone = null;
 
-            fpp.sfxCarolAttack1 = null;
+                fpp.sfxCarolAttack1 = null;
 
-            fpp.sfxCarolAttack2 = null;
+                fpp.sfxCarolAttack2 = null;
 
-            fpp.sfxCarolAttack3 = null;
+                fpp.sfxCarolAttack3 = null;
 
-            fpp.sfxPounce = null;
+                fpp.sfxPounce = null;
 
-            fpp.sfxWallCling = null;
+                fpp.sfxWallCling = null;
 
-            fpp.sfxRolling = null;
+                fpp.sfxRolling = null;
 
-            fpp.sfxMillaShieldSummon = null;
+                fpp.sfxMillaShieldSummon = null;
 
-            fpp.sfxMillaShieldFire = null;
+                fpp.sfxMillaShieldFire = null;
 
-            fpp.sfxMillaSuperShield = null;
+                fpp.sfxMillaSuperShield = null;
 
-            fpp.sfxMillaCubeSpawn = null;
+                fpp.sfxMillaCubeSpawn = null;
 
-            fpp.sfxShieldBlock = null;
+                fpp.sfxShieldBlock = null;
 
-            fpp.sfxShieldHit = null;
+                fpp.sfxShieldHit = null;
 
-            fpp.sfxShieldBreak = null;
-            
-            fpp.vaKO = null;
-            
-            fpp.sfxIdle = null;
-
-            fpp.sfxMove = null;
+                fpp.sfxShieldBreak = null;
                 
-            fpp.bgmResults = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().bgmBoss;
+                fpp.vaKO = null;
+                
+                fpp.sfxIdle = null;
 
-            fpp.audioChannel[4].mute = true;
-            fpp.audioChannel[5].mute = true;
-            
-            
-            /*
-            if (fpp.vaAttack[0] == null && fpp.vaStart[0] == null)
-            {
-                return; // Exit this early if we think we've already nulled things out since this is loop-heavy.
-            }
-            */
+                fpp.sfxMove = null;
+                    
+                fpp.bgmResults = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().bgmBoss;
 
-            NullAllClipsInArray(fpp.vaAttack);
-            NullAllClipsInArray(fpp.vaHardAttack);
-            NullAllClipsInArray(fpp.vaSpecialA);
-            NullAllClipsInArray(fpp.vaSpecialB);
-            NullAllClipsInArray(fpp.vaHit);
-            NullAllClipsInArray(fpp.vaIdle);
-            NullAllClipsInArray(fpp.vaRevive);
-            NullAllClipsInArray(fpp.vaStart);
-            NullAllClipsInArray(fpp.vaItemGet);
-            NullAllClipsInArray(fpp.vaClear);
-            NullAllClipsInArray(fpp.vaJackpotClear);
-            NullAllClipsInArray(fpp.vaLowDamageClear);
-            NullAllClipsInArray(fpp.vaExtra);
+                fpp.audioChannel[4].mute = true;
+                fpp.audioChannel[5].mute = true;
+                
+                
+                /*
+                if (fpp.vaAttack[0] == null && fpp.vaStart[0] == null)
+                {
+                    return; // Exit this early if we think we've already nulled things out since this is loop-heavy.
+                }
+                */
+
+                NullAllClipsInArray(fpp.vaAttack);
+                NullAllClipsInArray(fpp.vaHardAttack);
+                NullAllClipsInArray(fpp.vaSpecialA);
+                NullAllClipsInArray(fpp.vaSpecialB);
+                NullAllClipsInArray(fpp.vaHit);
+                NullAllClipsInArray(fpp.vaIdle);
+                NullAllClipsInArray(fpp.vaRevive);
+                NullAllClipsInArray(fpp.vaStart);
+                NullAllClipsInArray(fpp.vaItemGet);
+                NullAllClipsInArray(fpp.vaClear);
+                NullAllClipsInArray(fpp.vaJackpotClear);
+                NullAllClipsInArray(fpp.vaLowDamageClear);
+                NullAllClipsInArray(fpp.vaExtra);
             }
             catch (Exception e)
             {
@@ -1554,29 +1739,12 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             var merga = CurrentActiveBossInstance.GetComponent<PlayerBossMerga>();
             var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
 
-            var debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"Before Set Active", 1);
-            var offset = 64;
-            debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
-            
-            merga.gameObject.SetActive(p1.gameObject.activeInHierarchy);
-            
-            debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"After Set Active", 1);
-            offset += 16;
-            debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
             
             FPStage.ValidateStageListPos(p1);
             FPStage.ValidateStageListPos(merga);
-            
-            debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"After Validation", 1);
-            offset += 16;
-            debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
 
             NullifyPlayerSounds(p1);
-            
-            debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"After SoundNull", 1);
-            offset += 16;
-            debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
-            
+
             merga.enabled = true;
             merga.activationMode = FPActivationMode.ALWAYS_ACTIVE;
             merga.gameObject.SetActive(true);
@@ -1593,10 +1761,6 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             if (permaFollow)
             {
                 forceNoEventFrames++;
-                
-                debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"PermaFollow Start", 1);
-                offset += 16;
-                debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
 
                 if (p1.characterID == FPCharacterID.LILAC && p1.state != p1.State_Victory)
                 {
@@ -1679,10 +1843,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 //p1.attackSfx = 0;
 
                 merga.guardTime = p1.guardTime;
+                /*
                 if (p1.currentAnimation.Equals("Guard"))
                 {
                     merga.SetPlayerAnimation("Guard");
-                }
+                }*/
 
                 if (merga.health <= 0 
                     && merga.state != merga.State_Hurt
@@ -1704,87 +1869,107 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     merga.health = 0;
                 }
             }
-            
-            debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"Post Permafollow", 1);
-            offset += 16;
-            debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
 
             merga.direction = p1.direction;
-            
-            debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"Direction", 1);
-            offset += 16;
-            debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
 
-            //UpdateSerpAnimFromPlayer(p1, merga);
+            UpdateMergaAnimFromPlayer(p1, merga);
 
             p1.GetInputFromPlayer1();
             merga.input = p1.input;
-            
-            debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"After playerInput", 1);
-            offset += 16;
-            debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
 
             if (merga.state == merga.State_Hurt)
             {
                 // Can't act out of hurt frames.
-                debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"State 1", 1);
-                offset += 16;
-                debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
             }
             else if (merga.state == merga.State_Init && merga.bossActivated)
             {
                 merga.state = State_Merga_Physics_Idle; //TODO: Merga specific version.
-                debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"State 2", 1);
-                offset += 16;
-                debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
             }
             else if (merga.input.attackPress)
             {
-                debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"State 3", 1);
-                offset += 16;
-                debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
-                if (merga.input.up)
+                if (merga.onGround)
                 {
+                    if (merga.input.up)
+                    {
                     
-                    if (p1.energy >= 100)
-                    {
-                        useEnergy = true;
-                        merga.genericTimer = 1f;
-                        PlayerBossSetStateByPrivateMethodName(merga, "State_AirSlashCombo");
-                        //SerpStartDualGround(serp);
+                        /*
+                        if (p1.energy >= 100)
+                        {
+                            useEnergy = true;
+                            merga.genericTimer = 1f;
+                            PlayerBossSetStateByPrivateMethodName(merga, "State_AirSlashCombo");
+                            //SerpStartDualGround(serp);
+                        }*/
+                        merga.SetPlayerAnimation("AttackAir1");
                     }
-                }
-                else if (merga.input.down)
-                {
-                    if (p1.energy >= 100)
+                    else if (merga.input.down)
                     {
-                        useEnergy = true;
-                        merga.genericTimer = 1f;
-                        PlayerBossSetStateByPrivateMethodName(merga, "State_SpiralDaggers");
-                        //State_RunAttack
-                        //SerpStartDualAir(serp);
-                    }
+                        if (p1.energy >= 100)
+                        {
+                            useEnergy = true;
+                            merga.genericTimer = 1f;
+                            PlayerBossSetStateByPrivateMethodName(merga, "State_SpiralDaggers");
+                            //State_RunAttack
+                            //SerpStartDualAir(serp);
+                        }
 
                     
+                    }
+                    else
+                    {
+                        useEnergy = false;
+                        //merga.genericTimer = 1f;
+                        //SerpStartShooting(serp);
+                        //PlayerBossSetStateByPrivateMethodName(merga, "State_RunAttack");
+                    
+                        //PlayerBossSetPrivateFieldByName(merga, "setupFlag", false);
+                        //
+                        //PlayerBossSetStateByPrivateMethodName(merga, "State_GroundSlashCombo");
+                        merga.attackStats = merga.AttackStats_Slash;
+
+                        if (Math.Abs(merga.groundVel) >= merga.topSpeed)
+                        {
+                            merga.SetPlayerAnimation("AttackRun1");
+                            merga.attackStats = merga.AttackStats_RunAttack;
+                        }
+                        else
+                        {
+                            merga.SetPlayerAnimation("AttackGround1");
+                            merga.attackStats = merga.AttackStats_Slash;
+                        }
+                    }
                 }
-                else
+                else if (!merga.onGround)
                 {
-                    useEnergy = false;
-                    merga.genericTimer = 1f;
-                    //SerpStartShooting(serp);
-                    PlayerBossSetStateByPrivateMethodName(merga, "State_RunAttack");
+                    if (merga.input.down)
+                    {
+                        merga.SetPlayerAnimation("AttackAir2");
+                        merga.attackStats = merga.AttackStats_Slash;
+                    }
+                    else
+                    {
+                        merga.SetPlayerAnimation("AttackAir1");
+                        merga.attackStats = merga.AttackStats_Slash;
+                    }
                 }
             }
             else if (merga.input.attackHold)
             {
-                merga.genericTimer -= FPStage.deltaTime;
+                //merga.genericTimer -= FPStage.deltaTime;
             }
             else if (merga.input.specialPress)
             {
                 //merga.SetPlayerAnimation("Missile");
                 //merga.Action_ForwardDash(p1.topSpeed);
-                PlayerBossSetStateByPrivateMethodName(merga, "State_RunAttackState_DragonBoostFlurry");
-                useEnergy = true;
+                if (merga.energy >= 100f
+                    && !merga.currentAnimation.Equals("Dragonboost")
+                    && !merga.currentAnimation.Equals("Rolling"))
+                {
+                    PlayerBossSetStateByPrivateMethodName(merga, "State_RunAttackState_DragonBoostFlurry");
+                    merga.SetPlayerAnimation("Rolling");
+                    merga.attackStats = merga.AttackStats_Dragonboost;
+                    useEnergy = true;
+                }
             }
             else if (p1.input.specialHold || p1.input.specialPress)
             {
@@ -1794,38 +1979,27 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             else if (merga.input.jumpPress && p1.onGround && !p1.currentAnimation.Equals("Swimming"))
             {
-                merga.SetPlayerAnimation("Swimming");
+                //merga.SetPlayerAnimation("Swimming");
+                merga.angle = 0;
+                merga.velocity.y = 5f;
+                merga.SetPlayerAnimation("Jumping", 0.25f, 0.25f);
+                
+                p1.velocity.y = merga.velocity.y;
+                p1.onGround = merga.onGround;
             }
             else if (merga.input.guardPress && p1.guardTime <= 0)
             {
-                merga.SetPlayerAnimation("Guard");
-                merga.velocity.y = 0;
-                merga.velocity.x += (15f * Mathf.Sign(merga.velocity.x));
+                merga.SetPlayerAnimation("Float");
+                p1.guardTime = 2f;
             }
             else
             {
-                if (p1.currentAnimation == "Running" 
-                    || p1.currentAnimation == "TopSpeed"
-                    || (p1.onGround && (merga.input.left || merga.input.right)))
-                {
-                    merga.genericTimer = 0;
-                    //SerpSetStateByPrivateMethodName(serp, "State_Dash");
-                    useEnergy = false;
-                }
-                /* Rewrite this to check against the player input, or check it after I've already set this animation myself.
-                else if (p1.acceleration * p1.groundVel < 0 && Mathf.Abs(p1.groundVel) <= 2f) // Is slowing down check.
-                {
-                    merga.genericTimer = 1;
-                    SerpSetStateByPrivateMethodName(serp, "State_Skid");
-                    useEnergy = false;
-                }*/
-                else
-                {
-                    merga.genericTimer = 0;
-                    merga.state = State_Merga_Physics_Idle; // TODO: Replace this too. 
-                    useEnergy = false;
-                }
+                merga.genericTimer = 0;
+                merga.state = State_Merga_Physics_Idle; // TODO: Replace this too. 
+                useEnergy = false;
             }
+            
+            PlayerBossSetPrivateFieldByName(merga, "returnState", null);
             
             if (merga.currentAnimation != null && merga.currentAnimation.Equals("Dragonboost"))
             {
@@ -1844,8 +2018,67 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             var note2 = OnScreenTextUtil.CreateTimedOnScreenText($"Merga Sync Completed.", 1);
             note2.transform.position += new Vector3(0f, -32-16f, 0f);
+
+            MergaResetToIdleFromCompleteAnimation(merga, p1);
         }
-        
+
+        public static bool PlayerBossFinishedAnimation(PlayerBoss playerBoss)
+        {
+            bool finished = playerBoss.animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f;
+            return finished;
+        }
+
+        public static void MergaResetToIdleFromCompleteAnimation(PlayerBossMerga merga, FPPlayer p1)
+        {
+            var exitFromAnims = new List<string>(){ "AttackAir2", "Dragonboost"
+                ,"AttackGround2", "AttackGround1", "AttackAir1", "Float"};
+            
+            Dictionary<string, string> LilacMergaAnimConversions = new Dictionary<string, string>();
+            
+            LilacMergaAnimConversions.Add("AttackAir1","Jumping");
+            LilacMergaAnimConversions.Add("AttackAir2","Jumping");
+            LilacMergaAnimConversions.Add("Dragonboost","Running");
+            LilacMergaAnimConversions.Add("AttackGround1","Idle");
+            LilacMergaAnimConversions.Add("AttackGround2","Idle");
+            LilacMergaAnimConversions.Add("Walking","Running");
+            LilacMergaAnimConversions.Add("Running","Running");
+            LilacMergaAnimConversions.Add("TopSpeed","TopSpeed");
+            LilacMergaAnimConversions.Add("Idle","Idle");
+            LilacMergaAnimConversions.Add("Jumping","Jumping");
+            LilacMergaAnimConversions.Add("Jumping_Loop","Jumping");
+            LilacMergaAnimConversions.Add("Skidding", "Skidding");
+            LilacMergaAnimConversions.Add("Guard","Float");
+            
+            //{ "AttackAir2", "Dragonboost", "AttackGround2" };
+            if (PlayerBossFinishedAnimation(merga)
+                && exitFromAnims.Contains(merga.currentAnimation))
+            {
+                if (LilacMergaAnimConversions.ContainsKey(p1.currentAnimation))
+                {
+                    merga.SetPlayerAnimation(LilacMergaAnimConversions[p1.currentAnimation]);
+                }
+                
+                else if (p1.onGround)
+                {
+
+                    //merga.genericTimer = 0;
+                    //SerpSetStateByPrivateMethodName(serp, "State_Dash");
+                    
+                    //merga.SetPlayerAnimation(p1.currentAnimation);
+                    
+                }
+                else
+                {
+                    merga.SetPlayerAnimation("Jumping");
+                }
+
+                merga.attackStats = merga.AttackStats_Idle;
+                merga.state = State_Merga_Physics_Idle;
+                merga.direction = p1.direction;
+                useEnergy = false;
+            }
+        }
+
         public static void State_Merga_Physics_Idle()
         {
             var merga = CurrentActiveBossInstance.GetComponent<PlayerBossMerga>();
@@ -1866,7 +2099,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 merga.RotatePlayerUpright();
             }
             
-            //UpdatemergaAnimFromPlayer(p1, merga);
+            UpdateMergaAnimFromPlayer(p1, merga);
 
             if (merga.invincibility <= 0 && merga.hitStun <= 0 && merga.guardTime <= 0)
             {
