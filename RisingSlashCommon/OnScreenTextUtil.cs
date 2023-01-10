@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace RisingSlash.FP2Mods.RisingSlashCommon;
 
@@ -11,7 +12,19 @@ public class OnScreenTextUtil
     {
         TextMesh theTextMesh;
         //GameObject go = new GameObject("finna Show a Text");
-        GameObject go = ClonePauseMenuText();
+        var menuTexts = Resources.FindObjectsOfTypeAll<MenuText>();
+        GameObject go = null;
+        
+        if (menuTexts.Length > 0)
+        {
+            //go = menuTexts[0].gameObject;
+            if (fpMenuFont == null)
+            {
+                fpMenuFont = menuTexts[0].GetComponent<TextMesh>().font;
+                fpMenuMaterial = fpMenuFont.material;
+            }
+        }
+
         if (go == null)
         {
             go = new GameObject("finna Show a Text");
@@ -20,7 +33,7 @@ public class OnScreenTextUtil
         {
             go.name = "finna FOUND a text wow";
         }
-
+        
         go.AddComponent<TextMesh>();
         theTextMesh = go.GetComponent<TextMesh>();
 
@@ -30,9 +43,24 @@ public class OnScreenTextUtil
         }
 
         theTextMesh.font = fpMenuFont;
-        theTextMesh.GetComponent<MeshRenderer>().materials[0] = fpMenuMaterial;
         theTextMesh.characterSize = 10;
-        theTextMesh.anchor = TextAnchor.UpperLeft;
+        //theTextMesh.anchor = TextAnchor.UpperLeft;
+        theTextMesh.anchor = TextAnchor.MiddleLeft;
+        //theTextMesh.GetComponent<MeshRenderer>().materials[0] = fpMenuMaterial;
+
+        var tRenderer = go.GetComponent<MeshRenderer>();
+        tRenderer.shadowCastingMode = ShadowCastingMode.Off;
+        tRenderer.lightProbeUsage = LightProbeUsage.Off;
+        tRenderer.material = fpMenuFont.material;
+
+
+        go.layer = LayerMask.NameToLayer("UI");
+        go.transform.position = new Vector3(32, -64, 0);
+        ConvenienceMethods.ShowMessageAsBadge("UI Layer: " + go.layer);
+
+        theTextMesh.text = textToShow;
+        theTextMesh.richText = false;
+        
         
         return theTextMesh;
     }

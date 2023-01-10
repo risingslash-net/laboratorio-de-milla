@@ -124,4 +124,18 @@ public static class ConvenienceMethods
         ltm.targetTextMesh = tm;
         ltm.text = tm.text;
     }
+
+    public static void LockPlayerMovement(FPPlayer fpp)
+    {
+        fpp.state = fpp.State_Ball;
+        fpp.targetGimmick = null;
+    }
+    
+    public static void UnlockPlayerMovement(FPPlayer fpp)
+    {
+        fpp.state = fpp.State_Ball_Inert;
+        fpp.targetGimmick = null;
+        fpp.genericTimer = 0f;
+    }
+    
 }
