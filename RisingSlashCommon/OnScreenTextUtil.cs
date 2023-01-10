@@ -8,6 +8,14 @@ public class OnScreenTextUtil
     public static Font fpMenuFont;
     public static Material fpMenuMaterial;
 
+    public static TextMesh CreateTimedOnScreenText(string textToShow, float seconds)
+    {
+        var tm = CreateOnScreenText(textToShow);
+        DestroyOnTimer(tm.gameObject, seconds);
+        return tm;
+    }
+
+    // Note: the vertical position starts with 0 at the top of the screen and a negative value pushes it lower from the top.
     public static TextMesh CreateOnScreenText(string textToShow = "Waiting for text...")
     {
         TextMesh theTextMesh;
@@ -56,7 +64,7 @@ public class OnScreenTextUtil
 
         go.layer = LayerMask.NameToLayer("UI");
         go.transform.position = new Vector3(32, -64, 0);
-        ConvenienceMethods.ShowMessageAsBadge("UI Layer: " + go.layer);
+        //ConvenienceMethods.ShowMessageAsBadge("UI Layer: " + go.layer);
 
         theTextMesh.text = textToShow;
         theTextMesh.richText = false;
@@ -120,5 +128,11 @@ public class OnScreenTextUtil
         output = tempGo;
 
         return output;
+    }
+
+    public static void DestroyOnTimer(GameObject gameObject, float seconds)
+    {
+        var destroyTime = gameObject.AddComponent<DestroyOnTimer>();
+        destroyTime.SetTimer(seconds);
     }
 }
