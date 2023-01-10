@@ -32,13 +32,13 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\FreedomPlanet2.GameLibs\Assembly-CSharp.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\RisingSlashCommon\RisingSlashCommon.csproj" />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\RisingSlashCommon\RisingSlashCommon.csproj" />
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\FreedomPlanet2.GameLibs\Assembly-CSharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

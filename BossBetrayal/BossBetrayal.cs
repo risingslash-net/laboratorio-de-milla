@@ -395,6 +395,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     CurrentState = StateWaitForPlayableLevel;
                     SceneManipulationScheduler.MainScheduler.RequestComplete(requestSourceObject);
                     var tm = OnScreenTextUtil.CreateTimedOnScreenText("Serpentine is ready for battle!", 15f);
+                    tm.transform.position += new Vector3(64f, -32f, 0f);
                     if (tm == null || tm.gameObject == null)
                     {
                         ConvenienceMethods.LogWarning("Why is the text-mesh null????");
@@ -656,19 +657,37 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 SerpSyncToCarol();
                 
                 //DELETEME: 
-                
-                if (CustomControls.GetButtonDown(PHKToggleChatInput))
+
+
+                if (CurrentActiveBossInstance != null)
                 {
-                    //ConvenienceMethods.ShowMessageAsBadge("This is a test.", "Boss Betrayal Debug Key:");
-                    //var tempTextMesh = OnScreenTextUtil.CreateOnScreenText("Tab Pressed.");
-                    var tempTextMesh2 = OnScreenTextUtil.CreateTimedOnScreenText("Tab Pressed.", 3f);
-                    tempTextMesh2.transform.position += new Vector3(0f, -16f, 0f);
+                    if (CustomControls.GetButtonDown(PHKToggleChatInput))
+                    {
+                        //ConvenienceMethods.ShowMessageAsBadge("This is a test.", "Boss Betrayal Debug Key:");
+                        //var tempTextMesh = OnScreenTextUtil.CreateOnScreenText("Tab Pressed.");
+                        var tempTextMesh2 = OnScreenTextUtil.CreateTimedOnScreenText("Tab Pressed.", 3f);
+                        tempTextMesh2.transform.position += new Vector3(0f, -16f, 0f);
+                    
+                        //var badge = ConvenienceMethods.ShowMessageAsBadge("Serpentine is ready for battle!", "Boss Betrayal");
+                        //DontDestroyOnLoad(badge.gameObject);
+                        //DontDestroyOnLoad(OnScreenTextUtil.CreateTimedOnScreenText("Serpentine is ready for battle!", 10f).gameObject);
+                        var ripperoni = "nah";
+                        if (SteamNetworkingUtils.IsSteamManagerInitialized())
+                        {
+                            ripperoni = "Actually, YEAH!";
+                        }
+
+                        ConvenienceMethods.ShowMessageAsBadge(ripperoni, "Is SteamManager Initialized?");
+                    }
                 }
             }
             catch (Exception e)
             {
                 ConvenienceMethods.LogExceptionError(e);
             }
+
+            
+
             return;
         }
 
