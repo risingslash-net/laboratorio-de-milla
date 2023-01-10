@@ -1733,7 +1733,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             else if (merga.state == merga.State_Init && merga.bossActivated)
             {
-                merga.state = State_Serp_Physics_Idle; //TODO: Merga specific version.
+                merga.state = State_Merga_Physics_Idle; //TODO: Merga specific version.
                 debug1 = OnScreenTextUtil.CreateTimedOnScreenText($"State 2", 1);
                 offset += 16;
                 debug1.transform.position += new Vector3(0f, -32f - offset, 0f);
@@ -1822,7 +1822,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 else
                 {
                     merga.genericTimer = 0;
-                    merga.state = State_Serp_Physics_Idle; // TODO: Replace this too. 
+                    merga.state = State_Merga_Physics_Idle; // TODO: Replace this too. 
                     useEnergy = false;
                 }
             }
