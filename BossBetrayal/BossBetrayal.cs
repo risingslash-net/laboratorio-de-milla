@@ -266,6 +266,12 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             if (!firstUpdate)
             {
+                if (SceneManipulationScheduler.MainScheduler == null)
+                {
+                    ConvenienceMethods.LogWarning("Main Scheduler is null????");
+                    SceneManipulationScheduler.MainScheduler = new SceneManipulationScheduler();
+                }
+
                 if (SceneManipulationScheduler.MainScheduler.RequestManipulateScene(requestSourceObject, 10))
                 {
                     OnFirstUpdateDonor();
@@ -388,6 +394,15 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     stateInit = false;
                     CurrentState = StateWaitForPlayableLevel;
                     SceneManipulationScheduler.MainScheduler.RequestComplete(requestSourceObject);
+                    var tm = OnScreenTextUtil.CreateTimedOnScreenText("Serpentine is ready for battle!", 15f);
+                    if (tm == null || tm.gameObject == null)
+                    {
+                        ConvenienceMethods.LogWarning("Why is the text-mesh null????");
+                    }
+                    else
+                    {
+                        DontDestroyOnLoad(tm.gameObject);   
+                    }
                 }
             }
             else if (currentSceneName.Equals(configSerpBootupLevel.Value))
@@ -536,7 +551,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 stateInit = false;
                 CurrentState = Idle;
                 //stateInit = true;
-                ConvenienceMethods.ShowMessageAsBadge("Switching to Idle State");
+                //ConvenienceMethods.ShowMessageAsBadge("Switching to Idle State");
             }
             return;
         }
@@ -644,16 +659,16 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 
                 if (CustomControls.GetButtonDown(PHKToggleChatInput))
                 {
-                    ConvenienceMethods.ShowMessageAsBadge("This is a test.", "Boss Betrayal Debug Key:");
+                    //ConvenienceMethods.ShowMessageAsBadge("This is a test.", "Boss Betrayal Debug Key:");
+                    //var tempTextMesh = OnScreenTextUtil.CreateOnScreenText("Tab Pressed.");
+                    var tempTextMesh2 = OnScreenTextUtil.CreateTimedOnScreenText("Tab Pressed.", 3f);
+                    tempTextMesh2.transform.position += new Vector3(0f, -16f, 0f);
                 }
             }
             catch (Exception e)
             {
                 ConvenienceMethods.LogExceptionError(e);
             }
-
-            
-
             return;
         }
 
@@ -827,6 +842,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     p1.energyRecoverRate = swapCharacter.energyRecoverRate;
                     p1.energyRecoverRateCurrent = swapCharacter.energyRecoverRate;
                     p1.climbingSpeed = swapCharacter.climbingSpeed;
+
+                    //p1.characterID = (FPCharacterID)60;
                     
                     FPStage.DestroyStageObject(p1.carolJumpDisc);
                 }
