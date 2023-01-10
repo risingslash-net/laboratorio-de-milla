@@ -17,6 +17,12 @@ public class DestroyOnTimer : MonoBehaviour
             {
                 mr.material.color = new Color(mr.material.color.r, mr.material.color.g, mr.material.color.b, Mathf.Max(destroyTimer, 0f));
             }
+            
+            var sr = gameObject.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.material.color = new Color(sr.material.color.r, sr.material.color.g, sr.material.color.b, Mathf.Max(destroyTimer, 0f));
+            }
         }
         if (destroyTimer <= 0)
         {
