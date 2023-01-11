@@ -44,6 +44,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         public static GameObject DonorBossInstance;
         public static Dictionary<string, GameObject> DictDonorBossInstances;
         public static GameObject CurrentActiveBossInstance;
+        public static List<GameObject> CurrentActiveBossInstances;
         public static int forceNoEventFrames = 10;
         public static bool permaFollow = true;
 
@@ -61,6 +62,9 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         public static string requestSourceObject = "PlayableSerpentine";
 
         public static Dictionary<string, int> KnownInstanceIDs;
+        public static HashSet<string> ValidBossNames;
+        public static string CurrentBossSpawnTarget = "Serpentine";
+        public static List<string> BossTargetList;
 
 
         public static TextMesh debugText;
@@ -74,6 +78,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             serpStates = new Dictionary<string, FPObjectState>();
 
             InitKnownInstanceIDs();
+            InitValidBossNames();
+            CurrentActiveBossInstances = new List<GameObject>();
         }
 
         public static void InitKnownInstanceIDs()
@@ -85,6 +91,14 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             KnownInstanceIDs.Add("Merga (Lilith)", 60134);
             KnownInstanceIDs.Add("Merga (Blood Moon)", 60138);
             KnownInstanceIDs.Add("Unarmored Merga", 60168);
+        }
+        
+        public static void InitValidBossNames()
+        {
+            ValidBossNames = new HashSet<string>();
+            ValidBossNames.Add("serpentine");
+            ValidBossNames.Add("merga");
+            ValidBossNames.Add("cory");
         }
 
         private static void OnFirstUpdateDonor()
@@ -104,13 +118,38 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
                 string level = configSerpBootupLevel.Value;
                 
+                if (BossTargetList.Count > 0 && CurrentBossSpawnTarget.IsNullOrWhiteSpace())
+                {
+                    if (!ValidBossNames.Contains(BossTargetList[0].Trim().ToLower()))
+                    {
+                        BossTargetList.RemoveAt(0);
+                        return;
+                    }
+                    else
+                    {
+                        CurrentBossSpawnTarget = BossTargetList[0].Trim().ToLower();
+                        BossTargetList.RemoveAt(0);
+                        DonorBossInstance = null;
+                    }
 
-                if (configBossToLoad.Value.ToLower().Equals("serpentine"))
+                
+                }
+                else
+                {
+                    CurrentBossSpawnTarget = null;
+                }
+
+                if (CurrentBossSpawnTarget == null)
+                {
+                    return;
+                }
+
+                if (CurrentBossSpawnTarget.Equals("serpentine"))
                 {
                     donorLevel = "Snowfields";
                 }
                 
-                if (configBossToLoad.Value.ToLower().Equals("merga"))
+                if (CurrentBossSpawnTarget.Equals("merga"))
                 {
                     donorLevel = "Bakunawa4Boss";
                 }
@@ -248,7 +287,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             
             configBossToLoad = Config.Bind("General",      // The section under which the option is shown
                 "BossToLoad",  // The key of the configuration option in the configuration file
-                "serpentine", // The default value
+                "serpentine,merga", // The default value
                 "Name of the boss to load. Valid options are: serpentine"); // Description of the option to show in the config file
             
             configSaveFileNumber = Config.Bind("General",      // The section under which the option is shown
@@ -267,7 +306,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 "Showing the black wipe transition looks cleaner and is more likely to work with built-in levels. Disable this when loading scenes from asset bundles."); // Description of the option to show in the config file
             
             PHKToggleChatInput = CustomControls.CreateEntryAndBindHotkey("PHKToggleChatInput", "Tab", Config);
-            
+
+            BossTargetList = new List<string>(configBossToLoad.Value.Split(','));
         }
 
         public static void StateDoNothing()
@@ -287,6 +327,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 firstUpdate = false;
                 stateInit = true;
+                
+                if (DictDonorBossInstances == null)
+                {
+                    DictDonorBossInstances = new Dictionary<string, GameObject>();
+                }
             }
             if (!firstUpdate)
             {
@@ -299,7 +344,10 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 if (SceneManipulationScheduler.MainScheduler.RequestManipulateScene(requestSourceObject, 10))
                 {
                     OnFirstUpdateDonor();
-                    firstUpdate = true;
+                    if (CurrentBossSpawnTarget != null)
+                    {
+                        firstUpdate = true;
+                    }
                 }
             }
             
@@ -329,16 +377,18 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 stateInit = true;
             }
 
-            if (configBossToLoad.Value.Equals("serpentine"))
+            if (CurrentBossSpawnTarget.Equals("serpentine"))
             {
                 sLogger.LogInfo("Looking for Serp.");
                 DonorBossInstance = GameObject.Find("Boss Serpentine");
+                /*
                 if (DonorBossInstance != null)
                 {
                     DictDonorBossInstances.Add("serpentine", DonorBossInstance);
                 }
+                */
             }
-            else if (configBossToLoad.Value.Equals("merga"))
+            else if (CurrentBossSpawnTarget.Equals("merga"))
             {
                 sLogger.LogInfo("Looking for Merga.");
                 var possibleObjects = GameObject.FindObjectsOfType<FPBaseEnemy>();
@@ -423,10 +473,12 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                             }
                         }
                         
+                        /*
                         if (DonorBossInstance != null)
                         {
                             DictDonorBossInstances.Add("merga", DonorBossInstance);
                         }
+                        */
                     }
                 }
                 catch (Exception e)
@@ -473,7 +525,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 try
                 {
                     var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
-                    if (configBossToLoad.Value.Equals("serpentine"))
+                    if (CurrentBossSpawnTarget.Equals("serpentine"))
                     {
                         var serp = DonorBossInstance.GetComponent<PlayerBossSerpentine>();
                         var bossHUD = serp.GetComponent<FPBossHud>();
@@ -484,7 +536,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                             bossHUD.maxPetals = Mathf.FloorToInt(bossHUD.maxHealth / 10 );
                         }
                     }
-                    else if (configBossToLoad.Value.Equals("merga"))
+                    else if (CurrentBossSpawnTarget.Equals("merga"))
                     {
                         var merga = DonorBossInstance.GetComponent<PlayerBossMerga>();
                         var bossHUD = merga.GetComponent<FPBossHud>();
@@ -496,6 +548,12 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                         }
                     }
 
+                    
+                    if (ValidBossNames.Contains(CurrentBossSpawnTarget))
+                    {
+                        sLogger.LogInfo("Was able to confirm valid boss name, so string shenanigans DO work.");
+                        DictDonorBossInstances.Add(CurrentBossSpawnTarget, DonorBossInstance);
+                    }
 
                 }
                 catch (Exception e)
@@ -505,8 +563,17 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
 
 
-            if (SceneManager.GetActiveScene().name.Equals(donorLevel))
+            if (SceneManager.GetActiveScene().name.Equals(donorLevel) && DonorBossInstance != null)
             {
+                if (BossTargetList != null && BossTargetList.Count > 0)
+                {
+                    CurrentBossSpawnTarget = null;
+                    stateInit = false;
+                    firstUpdate = false;
+                    CurrentState = StateLoadDonorLevel;
+                    return;
+                }
+
                 sLogger.LogInfo("Boss is cached, time to load the level to play.");
                 FPStage.eventIsActive = false;
                 FPStage.currentStage.disablePausing = false;
@@ -615,42 +682,52 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         {
             try
             {
-                if (CurrentActiveBossInstance != null)
+                if (CurrentActiveBossInstances != null)
                 {
-                    CurrentActiveBossInstance.SetActive(false);
-                    CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().enabled = false;
-                    Destroy(CurrentActiveBossInstance);
+                    foreach (var oldBossInstance in CurrentActiveBossInstances)
+                    {
+                        oldBossInstance.SetActive(false);
+                        //CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().enabled = false;
+                        Destroy(oldBossInstance);
+                    }   
+                    CurrentActiveBossInstances.Clear();
+                }
+                //foreach (var fpplayer in Component.GetObjectsOfType<FPPlayer>()) // and then get funky wunky with the characteRIDs to determine boss.
+                foreach (var donorBossToSpawn in DictDonorBossInstances.Values)
+                {
+
+                    CurrentActiveBossInstance = Instantiate(donorBossToSpawn);
+                    //SceneManager.MoveGameObjectToScene(CurrentActiveBossInstance, SceneManager.GetActiveScene());
+                    CurrentActiveBossInstance.SetActive(true);
+                    DontDestroyOnLoad(CurrentActiveBossInstance);
+
+                    if (FPStage.currentStage != null && FPStage.currentStage.GetPlayerInstance() != null)
+                    {
+                        var fpPlayerBase = FPStage.currentStage.GetPlayerInstance();
+                        var playerBoss = CurrentActiveBossInstance.GetComponent<PlayerBoss>();
+                        if (fpPlayerBase != null)
+                        {
+                            sLogger.LogInfo(
+                                "Found a player object. Moving the boss to that location and hiding the old player.");
+                            CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().position =
+                                new Vector2(fpPlayerBase.gameObject.transform.position.x,
+                                    fpPlayerBase.gameObject.transform.position.y);
+
+                            //fpPlayerBase.gameObject.SetActive(false);
+                            //fpPlayerBase.enabled = false;
+
+                            playerBoss.enabled =  true;
+                            //FPCamera.SetCameraTarget(CurrentActiveBossInstance);
+                            //FPStage.currentStage.SetPlayerInstance(CurrentActiveBossInstance);
+                            FPStage.ValidateStageListPos(playerBoss);
+                        }
+                        sLogger.LogInfo("Finished boss instantiation without throwing an exception.");
+                    }
+
+                    CurrentActiveBossInstances.Add(CurrentActiveBossInstance);
                     CurrentActiveBossInstance = null;
                 }
 
-                CurrentActiveBossInstance = Instantiate(DonorBossInstance);
-                SceneManager.MoveGameObjectToScene(CurrentActiveBossInstance, SceneManager.GetActiveScene());
-                CurrentActiveBossInstance.SetActive(true);
-                DontDestroyOnLoad(CurrentActiveBossInstance);
-
-                if (FPStage.currentStage != null && FPStage.currentStage.GetPlayerInstance() != null)
-                {
-                    var fpPlayerBase = FPStage.currentStage.GetPlayerInstance();
-                    var playerBoss = CurrentActiveBossInstance.GetComponent<PlayerBoss>();
-                    if (fpPlayerBase != null)
-                    {
-                        sLogger.LogInfo(
-                            "Found a player object. Moving the boss to that location and hiding the old player.");
-                        CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().position =
-                            new Vector2(fpPlayerBase.gameObject.transform.position.x,
-                                fpPlayerBase.gameObject.transform.position.y);
-
-                        //fpPlayerBase.gameObject.SetActive(false);
-                        //fpPlayerBase.enabled = false;
-
-                        playerBoss.enabled =  true;
-                        //FPCamera.SetCameraTarget(CurrentActiveBossInstance);
-                        //FPStage.currentStage.SetPlayerInstance(CurrentActiveBossInstance);
-                        FPStage.ValidateStageListPos(playerBoss);
-                    }
-                    sLogger.LogInfo("Finished boss instantiation without throwing an exception.");
-                }
-                
             }
             catch (Exception e)
             {
@@ -814,28 +891,38 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 {
                     sLogger.LogInfo("Scene changed. We should see a second similar message when we reset the state.");
                 }
-                
-                if (CurrentActiveBossInstance != null )
+
+                foreach (var currentActiveBossInstance in CurrentActiveBossInstances)
                 {
-                    
-                    FPPlayer tempFpp;
-                    foreach (var currentEnemy in FPStage.GetActiveEnemies())
+                    if (currentActiveBossInstance != null )
                     {
-                        tempFpp = currentEnemy.GetComponent<FPPlayer>();
-                        if (tempFpp != null)
+                    
+                        FPPlayer tempFpp;
+                        foreach (var currentEnemy in FPStage.GetActiveEnemies())
                         {
-                            tempFpp.position = currentEnemy.position;
+                            tempFpp = currentEnemy.GetComponent<FPPlayer>();
+                            if (tempFpp != null)
+                            {
+                                tempFpp.position = currentEnemy.position;
+                            }
                         }
                     }
+
+                    if (sceneChanged)
+                    {
+                        currentActiveBossInstance.SetActive(false);
+                        Destroy(currentActiveBossInstance);
+                    }
                 }
+                
+
+                
                 
                 if (sceneChanged)
                 {
                     // Attempt to instantiate the boss again.
                     sLogger.LogInfo("Scene changed: Switching to StateWaitForPlayableLevel.");
-                    CurrentActiveBossInstance.SetActive(false);
-                    Destroy(CurrentActiveBossInstance);
-                    CurrentActiveBossInstance = null;
+                    
                     stateInit = false;
                     CurrentState = StateWaitForPlayableLevel;
                 }
@@ -845,8 +932,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     FPStage.eventIsActive = false;
                     FPStage.currentStage.disablePausing = false;
                     forceNoEventFrames--;
-                    CurrentActiveBossInstance.SetActive(true);
-                    
+                    foreach (var cabi in CurrentActiveBossInstances)
+                    {
+                        cabi.SetActive(true);
+                    }
+
                 }
                 
                 PlayerBossSyncToMainPlayer();
@@ -854,7 +944,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 //DELETEME: 
 
 
-                if (CurrentActiveBossInstance != null)
+                if (CurrentActiveBossInstances.Count > 0)
                 {
                     if (CustomControls.GetButtonDown(PHKToggleChatInput))
                     {
@@ -902,49 +992,65 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
         public static void SerpStart()
         {
-            var serp = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>();
-            if (serp.bgmBoss != null)
+            
+            /*
+            foreach (var cabi in CurrentActiveBossInstances)
             {
-                //FPAudio.PlayMusic(serp.bgmBoss);
+                
             }
-            serp.Action_PlayVoice(serp.vaStart[UnityEngine.Random.Range(0, serp.vaStart.Length - 1)]);
-            serp.isTalking = true;
-            serp.voiceTimer = 240f;
-            FPStage.timeEnabled = true;
-            serp.bossActivated = true;
-            FPBossHud component = serp.GetComponent<FPBossHud>();
-            if (component != null)
+            */
+            foreach (var cabi in CurrentActiveBossInstances)
             {
-                component.MoveIn();
-                component.healthBarOffset += new Vector2(-128-64, -64-64);
-                component.hudPosition.y += -64 - 64;
+                 var serp = cabi.GetComponent<PlayerBossSerpentine>();
+                 if (serp.bgmBoss != null)
+                 {
+                     //FPAudio.PlayMusic(serp.bgmBoss);
+                 }
+                 serp.Action_PlayVoice(serp.vaStart[UnityEngine.Random.Range(0, serp.vaStart.Length - 1)]);
+                 serp.isTalking = true;
+                 serp.voiceTimer = 240f;
+                 FPStage.timeEnabled = true;
+                 serp.bossActivated = true;
+                 FPBossHud component = serp.GetComponent<FPBossHud>();
+                 if (component != null)
+                 {
+                     component.MoveIn();
+                     component.healthBarOffset += new Vector2(-128-64, -64-64);
+                     component.hudPosition.y += -64 - 64;
+                 }
+                 if (serp.nextBoss != null)
+                 {
+                     serp.nextBoss.gameObject.SetActive(value: false);
+                 }
+                 serp.Action_Dash();
             }
-            if (serp.nextBoss != null)
-            {
-                serp.nextBoss.gameObject.SetActive(value: false);
-            }
-            serp.Action_Dash();
+            
         }
         
         public static void MergaStart()
         {
-            var merga = CurrentActiveBossInstance.GetComponent<PlayerBossMerga>();
-            if (merga.bgmBoss != null)
+            foreach (var cabi in CurrentActiveBossInstances)
             {
-                //FPAudio.PlayMusic(serp.bgmBoss);
+                var merga = cabi.GetComponent<PlayerBossMerga>();
+                if (merga.bgmBoss != null)
+                {
+                    //FPAudio.PlayMusic(serp.bgmBoss);
+                }
+                merga.Action_PlayVoice(merga.vaStart[UnityEngine.Random.Range(0, merga.vaStart.Length - 1)]);
+                merga.isTalking = true;
+                merga.voiceTimer = 240f;
+                FPStage.timeEnabled = true;
+                merga.bossActivated = true;
+                FPBossHud component = merga.GetComponent<FPBossHud>();
+                if (component != null)
+                {
+                    component.MoveIn();
+                    component.healthBarOffset += new Vector2(-128-64, -64-64);
+                    component.hudPosition.y += -64 - 64;
+                }
             }
-            merga.Action_PlayVoice(merga.vaStart[UnityEngine.Random.Range(0, merga.vaStart.Length - 1)]);
-            merga.isTalking = true;
-            merga.voiceTimer = 240f;
-            FPStage.timeEnabled = true;
-            merga.bossActivated = true;
-            FPBossHud component = merga.GetComponent<FPBossHud>();
-            if (component != null)
-            {
-                component.MoveIn();
-                component.healthBarOffset += new Vector2(-128-64, -64-64);
-                component.hudPosition.y += -64 - 64;
-            }
+            
+            
             //merga.action
         }
         
@@ -1039,16 +1145,20 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         {
             try
             {
-                if (configBossToLoad.Value.Equals("serpentine"))
+                foreach (var cabi in CurrentActiveBossInstances)
                 {
-                    SerpSyncToCarol();
+                    if (cabi.name.StartsWith("Boss Serpentine"))
+                    {
+                        SerpSyncToCarol(cabi);
+                    }
+                    else if (cabi.name.StartsWith("Unarmored Merga"))
+                    {
+                        //var note = OnScreenTextUtil.CreateTimedOnScreenText("MergaSync", 1);
+                        //note.transform.position += new Vector3(0f, -16f, 0f);
+                        MergaSyncToLilac(cabi);
+                    }
                 }
-                else if (configBossToLoad.Value.Equals("merga"))
-                {
-                    //var note = OnScreenTextUtil.CreateTimedOnScreenText("MergaSync", 1);
-                    //note.transform.position += new Vector3(0f, -16f, 0f);
-                    MergaSyncToLilac();
-                }
+                
             }
             catch (Exception e)
             {
@@ -1056,17 +1166,23 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
         }
 
-        public static void SerpSyncToCarol()
+        public static void SerpSyncToCarol(GameObject cabi)
         {
-            var serp = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>();
+            sLogger.LogInfo("Serp to Carol");
+            var serp = cabi.GetComponent<PlayerBossSerpentine>();
             var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
-            
+
+            if (p1.characterID != FPCharacterID.CAROL && p1.characterID != FPCharacterID.BIKECAROL)
+            {
+                return;
+            }
+
             serp.gameObject.SetActive(p1.gameObject.activeInHierarchy);
             
             FPStage.ValidateStageListPos(p1);
             FPStage.ValidateStageListPos(serp);
 
-            NullifyPlayerSounds(p1);
+            NullifyPlayerSounds(p1, serp);
 
             serp.enabled = true;
             serp.activationMode = FPActivationMode.ALWAYS_ACTIVE;
@@ -1347,7 +1463,16 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
         public static void State_Serp_Physics_Idle()
         {
-            var serp = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>();
+            PlayerBossSerpentine serp = null;
+            foreach (var cabi in CurrentActiveBossInstances)
+            {
+                if (cabi.GetComponent<PlayerBossSerpentine>() != null)
+                {
+                    serp = cabi.GetComponent<PlayerBossSerpentine>();
+                    break;
+                }
+            }
+            //var serp = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>();
             var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
             
             if (serp.currentAnimation.Equals("Shooting"))
@@ -1563,6 +1688,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
 
             if (p1.onGround
+                && !p1.onGrindRail
+                && !p1.currentAnimation.Equals("GrindRail")
                 && !playerBoss.input.attackPress
                 && !playerBoss.input.attackHold
                 && !playerBoss.input.specialPress
@@ -1643,7 +1770,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
         }
 
-        public static void NullifyPlayerSounds(FPPlayer fpp)
+        public static void NullifyPlayerSounds(FPPlayer fpp, PlayerBoss playerBoss)
         {
             if (fpp == null)
             {
@@ -1716,7 +1843,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
                 fpp.sfxMove = null;
                     
-                fpp.bgmResults = CurrentActiveBossInstance.GetComponent<PlayerBoss>().bgmBoss;
+                fpp.bgmResults = playerBoss.bgmBoss;
 
                 if (fpp.characterID == FPCharacterID.CAROL || fpp.characterID == FPCharacterID.BIKECAROL)
                 {
@@ -1766,9 +1893,10 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
         }
 
-        public static void MergaSyncToLilac()
+        public static void MergaSyncToLilac(GameObject cabi)
         {
-            var merga = CurrentActiveBossInstance.GetComponent<PlayerBossMerga>();
+            sLogger.LogInfo("Merga to Lilac");
+            var merga = cabi.GetComponent<PlayerBossMerga>();
             var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
             if (p1.characterID != FPCharacterID.LILAC)
             {
@@ -1779,7 +1907,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             FPStage.ValidateStageListPos(p1);
             FPStage.ValidateStageListPos(merga);
 
-            NullifyPlayerSounds(p1);
+            NullifyPlayerSounds(p1, merga);
 
             merga.enabled = true;
             merga.activationMode = FPActivationMode.ALWAYS_ACTIVE;
@@ -2131,7 +2259,17 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
         public static void State_Merga_Physics_Idle()
         {
-            var merga = CurrentActiveBossInstance.GetComponent<PlayerBossMerga>();
+            PlayerBossMerga merga = null;
+            foreach (var cabi in CurrentActiveBossInstances)
+            {
+                if (cabi.GetComponent<PlayerBossSerpentine>() != null)
+                {
+                    merga = cabi.GetComponent<PlayerBossMerga>();
+                    break;
+                }
+            }
+            
+            //var merga = CurrentActiveBossInstance.GetComponent<PlayerBossMerga>();
             var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
 
             merga.Process360Movement();
