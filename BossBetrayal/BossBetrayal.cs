@@ -1628,6 +1628,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             {
                 playerBoss.SetPlayerAnimation("Rolling");
             }
+            if (p1.onGrindRail || p1.currentAnimation.Equals("GrindRail"))
+            {
+                playerBoss.SetPlayerAnimation("KO_Ground");
+                //playerBoss.state = StateDoNothing;
+            }
 
             previousAnimationName = p1.currentAnimation;
 
@@ -1997,9 +2002,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 }
                 else
                 {
-                    if (merga.energy >= 100f
-                        && !merga.currentAnimation.Equals("Dragonboost")
-                        && !merga.currentAnimation.Equals("Rolling"))
+                    if (merga.energy >= 100f)
                     {
                         //PlayerBossSetStateByPrivateMethodName(merga, "State_RunAttackState_DragonBoostFlurry");
                         merga.SetPlayerAnimation("Dragonboost");
@@ -2076,8 +2079,9 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
         public static void MergaResetToIdleFromCompleteAnimation(PlayerBossMerga merga, FPPlayer p1)
         {
-            var exitFromAnims = new List<string>(){ "AttackAir2", "Dragonboost"
+            var exitFromAnims = new List<string>(){ "AttackAir2"
                 ,"AttackGround2", "AttackGround1", "AttackAir1", "Float"};
+                //, "Dragonboost"
             
             Dictionary<string, string> LilacMergaAnimConversions = new Dictionary<string, string>();
             
@@ -2162,6 +2166,17 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                         merga.state = merga.State_Frozen;
                         break;
                 }
+            }
+            
+            if (debugText == null)
+            {
+                debugText = OnScreenTextUtil.CreateOnScreenText($"Pos:{merga.transform.position}");
+                debugText.transform.position += new Vector3(0f, -32f, 0f);
+            }
+            else
+            {
+                debugText.text += $"\r\nState: {merga.state.Method.Name}";
+                debugText.text += $"\r\nAnim: {merga.currentAnimation}";
             }
         }
     }
