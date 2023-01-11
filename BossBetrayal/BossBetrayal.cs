@@ -62,6 +62,9 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
         public static Dictionary<string, int> KnownInstanceIDs;
 
+
+        public static TextMesh debugText;
+
         private void Awake()
         {
             sLogger = Logger;
@@ -514,6 +517,15 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         }
         public static void StateLoadLevelToPlay()
         {
+            try
+            {
+                RSNLocalMultiplayerControlRebinding.AllowLocalMultiplayerRebinds();
+            }
+            catch (Exception e)
+            {
+                ConvenienceMethods.LogExceptionError(e);
+            }
+
             if (!stateInit)
             {
                 firstUpdate = false;
@@ -805,11 +817,6 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 
                 if (CurrentActiveBossInstance != null )
                 {
-                    OnScreenTextUtil.CreateTimedOnScreenText("playable boss is not null.", 0.5f);
-                    //FPCamera.SetCameraTarget(CurrentActiveBossInstance);
-                    // Note: Removed the camera retargeting because it seemed to bug things out?
-                    
-                    //SerpForceUpdateIgnoreEnabled();
                     
                     FPPlayer tempFpp;
                     foreach (var currentEnemy in FPStage.GetActiveEnemies())
@@ -853,7 +860,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     {
                         //ConvenienceMethods.ShowMessageAsBadge("This is a test.", "Boss Betrayal Debug Key:");
                         //var tempTextMesh = OnScreenTextUtil.CreateOnScreenText("Tab Pressed.");
-                        var tempTextMesh2 = OnScreenTextUtil.CreateTimedOnScreenText("Tab Pressed.", 3f);
+                        var tempTextMesh2 = OnScreenTextUtil.CreateOnScreenText("Tab Pressed.");
                         tempTextMesh2.transform.position += new Vector3(0f, -16f, 0f);
                     
                         //var badge = ConvenienceMethods.ShowMessageAsBadge("Serpentine is ready for battle!", "Boss Betrayal");
@@ -1038,8 +1045,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 }
                 else if (configBossToLoad.Value.Equals("merga"))
                 {
-                    var note = OnScreenTextUtil.CreateTimedOnScreenText("MergaSync", 1);
-                    note.transform.position += new Vector3(0f, -16f, 0f);
+                    //var note = OnScreenTextUtil.CreateTimedOnScreenText("MergaSync", 1);
+                    //note.transform.position += new Vector3(0f, -16f, 0f);
                     MergaSyncToLilac();
                 }
             }
@@ -1622,6 +1629,11 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
         public static void NullifyPlayerSounds(FPPlayer fpp)
         {
+            if (fpp == null)
+            {
+                sLogger.LogWarning("Tried to nullify sounds on a null object?");
+            }
+
             try
             {
                 fpp.sfxJump = null;
@@ -1688,12 +1700,14 @@ namespace RisingSlash.FP2Mods.BossBetrayal
 
                 fpp.sfxMove = null;
                     
-                fpp.bgmResults = CurrentActiveBossInstance.GetComponent<PlayerBossSerpentine>().bgmBoss;
+                fpp.bgmResults = CurrentActiveBossInstance.GetComponent<PlayerBoss>().bgmBoss;
 
-                fpp.audioChannel[4].mute = true;
-                fpp.audioChannel[5].mute = true;
-                
-                
+                if (fpp.characterID == FPCharacterID.CAROL || fpp.characterID == FPCharacterID.BIKECAROL)
+                {
+                    fpp.audioChannel[4].mute = true;
+                    fpp.audioChannel[5].mute = true;
+                }
+
                 /*
                 if (fpp.vaAttack[0] == null && fpp.vaStart[0] == null)
                 {
@@ -1717,6 +1731,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             catch (Exception e)
             {
+                sLogger.LogWarning("Audio nullification BROKE");
+                sLogger.LogError(e.Message + e.StackTrace);
                 ConvenienceMethods.LogExceptionError(e);
             }
         }
@@ -1738,8 +1754,12 @@ namespace RisingSlash.FP2Mods.BossBetrayal
         {
             var merga = CurrentActiveBossInstance.GetComponent<PlayerBossMerga>();
             var p1 = FPStage.currentStage.GetPlayerInstance_FPPlayer();
+            if (p1.characterID != FPCharacterID.LILAC)
+            {
+                return;
+            }
 
-            
+
             FPStage.ValidateStageListPos(p1);
             FPStage.ValidateStageListPos(merga);
 
@@ -1755,8 +1775,8 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             
             merga.targetPlayer = FPStage.FindNearestPlayer(merga, 100000f);
             
-            var note = OnScreenTextUtil.CreateTimedOnScreenText($"Position Updated to {merga.transform.position}", 1);
-            note.transform.position += new Vector3(0f, -32f, 0f);
+            //var note = OnScreenTextUtil.CreateTimedOnScreenText($"Position Updated to {merga.transform.position}", 1);
+            //note.transform.position += new Vector3(0f, -32f, 0f);
 
             if (permaFollow)
             {
@@ -1999,7 +2019,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 useEnergy = false;
             }
             
-            PlayerBossSetPrivateFieldByName(merga, "returnState", null);
+            PlayerBossSetPrivateFieldByName(merga, "returnState", State_Merga_Physics_Idle);
             
             if (merga.currentAnimation != null && merga.currentAnimation.Equals("Dragonboost"))
             {
@@ -2016,10 +2036,19 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     useEnergy = false;
                 }
             }
-            var note2 = OnScreenTextUtil.CreateTimedOnScreenText($"Merga Sync Completed.", 1);
-            note2.transform.position += new Vector3(0f, -32-16f, 0f);
 
             MergaResetToIdleFromCompleteAnimation(merga, p1);
+            if (debugText == null)
+            {
+                debugText = OnScreenTextUtil.CreateOnScreenText($"Pos:{merga.transform.position}");
+                debugText.transform.position += new Vector3(0f, -32f, 0f);
+            }
+            else
+            {
+                debugText.text = $"Pos:{merga.transform.position}";
+                debugText.text += $"\r\nState: {merga.state.Method.Name}";
+                debugText.text += $"\r\nAnim: {merga.currentAnimation}";
+            }
         }
 
         public static bool PlayerBossFinishedAnimation(PlayerBoss playerBoss)

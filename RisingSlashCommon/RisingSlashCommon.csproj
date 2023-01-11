@@ -36,5 +36,8 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\FreedomPlanet2.GameLibs\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Rewired_Core">
+      <HintPath>E:\SteamLibrary\steamapps\common\Freedom Planet 2\FP2_Data\Managed\Rewired_Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
