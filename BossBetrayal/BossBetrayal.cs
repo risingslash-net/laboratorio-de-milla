@@ -1609,6 +1609,7 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 playerBoss.SetPlayerAnimation("BattleSignal");
             }
 
+            /*
             if (!previousAnimationName.Equals(p1.currentAnimation))
             {
                 if ((p1.currentAnimation.Equals("Wall")
@@ -1618,6 +1619,16 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                     playerBoss.SetPlayerAnimation("Hover");
                 }
             }
+            */
+            if (p1.currentAnimation.Equals("Dragonboost") && !playerBoss.currentAnimation.Equals("Dragonboost"))
+            {
+                playerBoss.SetPlayerAnimation("Dragonboost");
+            }
+            if (p1.currentAnimation.Equals("Rolling") && !playerBoss.currentAnimation.Equals("Rolling"))
+            {
+                playerBoss.SetPlayerAnimation("Rolling");
+            }
+
             previousAnimationName = p1.currentAnimation;
 
             if (playerBoss.currentAnimation.Equals("BattleSignal")
@@ -1870,17 +1881,24 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                 }*/
 
                 if (merga.health <= 0 
-                    && merga.state != merga.State_Hurt
-                    && (p1.state != p1.State_KO && p1.state != p1.State_CrushKO && p1.state != p1.State_KO_Recover))
+                    && merga.state != merga.State_Hurt)
                 {
-                    p1.health = -1;
-                    p1.state = p1.State_KO;
-                    p1.Action_Hurt();
+                    if (p1.state != p1.State_KO && p1.state != p1.State_CrushKO && p1.state != p1.State_KO_Recover)
+                    {
+                        
+                    }
+                    else if (p1.state == p1.State_KO && !merga.state.Method.Name.Equals("State_KO"))
+                    {
+                        p1.health = -1;
+                        p1.state = p1.State_KO;
+                        p1.Action_Hurt();
+                    }
                 }
 
                 if (p1.state == p1.State_KO_Recover)
                 {
                     merga.health = p1.healthMax * 10;
+                    merga.state = State_Merga_Physics_Idle;
                     //merga.state = PlayerBossSetStateByPrivateMethodName(merga, );
                 }
 
@@ -1921,19 +1939,6 @@ namespace RisingSlash.FP2Mods.BossBetrayal
                             //SerpStartDualGround(serp);
                         }*/
                         merga.SetPlayerAnimation("AttackAir1");
-                    }
-                    else if (merga.input.down)
-                    {
-                        if (p1.energy >= 100)
-                        {
-                            useEnergy = true;
-                            merga.genericTimer = 1f;
-                            PlayerBossSetStateByPrivateMethodName(merga, "State_SpiralDaggers");
-                            //State_RunAttack
-                            //SerpStartDualAir(serp);
-                        }
-
-                    
                     }
                     else
                     {
@@ -1979,16 +1984,28 @@ namespace RisingSlash.FP2Mods.BossBetrayal
             }
             else if (merga.input.specialPress)
             {
-                //merga.SetPlayerAnimation("Missile");
-                //merga.Action_ForwardDash(p1.topSpeed);
-                if (merga.energy >= 100f
-                    && !merga.currentAnimation.Equals("Dragonboost")
-                    && !merga.currentAnimation.Equals("Rolling"))
+                if (merga.input.down)
                 {
-                    PlayerBossSetStateByPrivateMethodName(merga, "State_RunAttackState_DragonBoostFlurry");
-                    merga.SetPlayerAnimation("Rolling");
-                    merga.attackStats = merga.AttackStats_Dragonboost;
-                    useEnergy = true;
+                    if (p1.energy >= 100)
+                    {
+                        useEnergy = true;
+                        merga.genericTimer = 1f;
+                        PlayerBossSetStateByPrivateMethodName(merga, "State_SpiralDaggers");
+                        //State_RunAttack
+                        //SerpStartDualAir(serp);
+                    }
+                }
+                else
+                {
+                    if (merga.energy >= 100f
+                        && !merga.currentAnimation.Equals("Dragonboost")
+                        && !merga.currentAnimation.Equals("Rolling"))
+                    {
+                        //PlayerBossSetStateByPrivateMethodName(merga, "State_RunAttackState_DragonBoostFlurry");
+                        merga.SetPlayerAnimation("Dragonboost");
+                        merga.attackStats = merga.AttackStats_Dragonboost;
+                        useEnergy = true;
+                    }
                 }
             }
             else if (p1.input.specialHold || p1.input.specialPress)
