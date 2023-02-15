@@ -7,15 +7,17 @@ from datetime import datetime
 class LobbyManager:
     def __init__(self):
         self.lobbies = {i: Lobby(i) for i in range(8)}
+        self.all_players = {}
 
-    def add_player(self, lobby_id, room_id, player_name, character_id, address):
-        return self.lobbies[lobby_id].add_player(room_id, player_name, character_id, address)
+    def add_player(self, lobby_id, room_id, player_name, player_discriminator, character_id, address):
+        return self.lobbies[lobby_id].add_player(room_id, player_name, player_discriminator, character_id, address)
 
-    def remove_player(self, lobby_id, room_id, player_name):
-        return self.lobbies[lobby_id].remove_player(room_id, player_name)
+    def remove_player(self, lobby_id, room_id, player_name, player_discriminator):
+        return self.lobbies[lobby_id].remove_player(room_id, player_name, player_discriminator)
 
-    def ready(self, lobby_id, room_id, player_name, ready):
-        return self.lobbies[lobby_id][room_id][player_name].set_ready(ready)
+    def ready(self, lobby_id, room_id, player_name, player_discriminator, ready):
+        #return self.lobbies[lobby_id].rooms[room_id].players[f'{player_name}#{player_discriminator}'].set_ready(ready)
+        return self.all_players[f'{player_name}#{player_discriminator}'].set_ready(ready)
 
     def add_spectator(self, lobby_id, room_id):
         return self.lobbies[lobby_id].add_spectator(room_id)
@@ -36,17 +38,22 @@ class LobbyManager:
         for i in self.lobbies.values():
             i.request_keepalives()
 
-    def keepalive_player(self, player_name):
+    def keepalive_player(self, player_name, player_discriminator):
         for i in self.lobbies.values():
-            i.keepalive_player(player_name)
+            i.keepalive_player(player_name, player_discriminator)
+            return True
 
-    def kick_player(self, player_name):
+    def kick_player(self, player_name,  player_discriminator):
+        player_to_remove = None
         for i in self.lobbies.values():
             for j in i.rooms.values():
                 for k in j.players.values():
-                    if k.player_name == player_name:
-                        j.remove_player(k.player_name)
+                    if k.player_name == player_name and k.player_discriminator == player_discriminator:
+                        player_to_remove = k
                         break
+                if player_to_remove:
+                    j.remove_player(player_to_remove.player_name, player_to_remove.player_discriminator)
+                    break
 
 
 class Lobby:
@@ -54,11 +61,11 @@ class Lobby:
         self.rooms = {i: Room(i) for i in range(8)}
         self.lobby_id = lobby_id
 
-    def add_player(self, room_id, player_name, character_id, address):
-        return self.rooms[room_id].add_player(player_name, character_id, address)
+    def add_player(self, room_id, player_name, player_discriminator, character_id, address):
+        return self.rooms[room_id].add_player(player_name, player_discriminator, character_id, address)
 
-    def remove_player(self, room_id, player_name):
-        return self.rooms[room_id].remove_player(player_name)
+    def remove_player(self, room_id, player_name, player_discriminator):
+        return self.rooms[room_id].remove_player(player_name, player_discriminator)
 
     def add_spectator(self, room_id):
         return self.rooms[room_id].add_spectator()
@@ -79,9 +86,9 @@ class Lobby:
         for i in self.rooms.values():
             i.request_keepalives()
 
-    def keepalive_player(self, player_name):
+    def keepalive_player(self, player_name, player_discriminator):
         for i in self.rooms.values():
-            i.keepalive_player(player_name)
+            i.keepalive_player(player_name, player_discriminator)
 
 
 class Room:
@@ -90,17 +97,24 @@ class Room:
         self.spectators = []
         self.map_votes = {}
         self.room_id = room_id
+        self.started = False
 
-    def add_player(self, player_name, character_id, address):
+    def add_player(self, player_name, player_discriminator, character_id, address):
         if len(self.players) >= 4:
             return False
-        self.players[player_name] = Player(player_name, character_id, address)
+        self.players[f'{player_name}#{player_discriminator}'] = Player(player_name, player_discriminator, character_id, address)
+        server.lobby_manager.all_players[f'{player_name}#{player_discriminator}'] = self.players[f'{player_name}#{player_discriminator}']
         return True
 
-    def remove_player(self, player_name):
+    def remove_player(self, player_name, player_discriminator):
         if player_name not in self.players:
             return False
-        del self.players[player_name]
+        if player_discriminator not in self.players:
+            return False
+        print(f'Removing: {player_name}#{player_discriminator}')
+        print(self.players[f'{player_name}#{player_discriminator}'])
+        del self.players[f'{player_name}#{player_discriminator}']
+        del server.lobby_manager.all_players[f'{player_name}#{player_discriminator}']
         return True
 
     def add_spectator(self):
@@ -136,6 +150,7 @@ class Room:
         if len(self.players) < 2:
             return False
         map_name = max(self.map_votes, key=self.map_votes.get)
+        self.started = True
         # start game with map_name
         return True
 
@@ -143,15 +158,17 @@ class Room:
         for i in self.players.values():
             i.request_keepalive()
 
-    def keepalive_player(self, player_name):
+    def keepalive_player(self, player_name, player_discriminator):
         for i in self.players.values():
-            if (i.player_name == player_name):
+            if (i.player_name == player_name and i.player_discriminator == player_discriminator):
                 i.keepalive()
+                break
 
 
 class Player:
-    def __init__(self, player_name, character_id, address):
+    def __init__(self, player_name, player_discriminator, character_id, address):
         self.player_name = player_name
+        self.player_discriminator = player_discriminator
         self.character_id = character_id
         self.ready = False
         self.vote = None
@@ -160,8 +177,6 @@ class Player:
         self.mod_list = []
 
     def set_ready(self, ready):
-        if len(self.players) >= 4:
-            return False
         self.ready = ready
         return self.ready
 
@@ -172,7 +187,7 @@ class Player:
             response['message'] = 'kicked'
             response['data'] = 'You were kicked from the server for failing to respond to the keepalive pings.'
             server.socket.sendto(json.dumps(response).encode(), self.address)
-            server.lobby_manager.kick_player(self.player_name)
+            server.lobby_manager.kick_player(self.player_name, self.player_discriminator)
         else:
             response = {'status': 'success'}
             response['message'] = 'request_keepalive'
@@ -193,6 +208,7 @@ class PlayerEncoder(json.JSONEncoder):
         if isinstance(obj, Player):
             return {
                 "player_name": obj.player_name,
+                "player_discriminator": obj.player_discriminator,
                 "character_id": obj.character_id,
                 "ready": obj.ready,
                 "vote": obj.vote,
@@ -233,23 +249,23 @@ class LobbyServer:
         print(f'addr({address}) sent: {command} with args {args}')
 
         if command == 'add_player':
-            lobby_id, room_id, player_name, character_id = args
+            lobby_id, room_id, player_name, player_discriminator, character_id = args
             lobby_id = int(lobby_id)
             room_id = int(room_id)
             character_id = int(character_id)
-            success = self.lobby_manager.add_player(lobby_id, room_id, player_name, character_id, address)
+            success = self.lobby_manager.add_player(lobby_id, room_id, player_name, player_discriminator, character_id, address)
             if success:
                 response['status'] = 'success'
         elif command == 'remove_player':
-            lobby_id, room_id, player_name = args
+            lobby_id, room_id, player_name, player_discriminator = args
             lobby_id = int(lobby_id)
             room_id = int(room_id)
-            success = self.lobby_manager.remove_player(lobby_id, room_id, player_name)
+            success = self.lobby_manager.remove_player(lobby_id, room_id, player_name, player_discriminator)
             if success:
                 response['status'] = 'success'
         elif command == 'keepalive_player':
-            player_name = args
-            success = self.lobby_manager.keepalive_player(player_name)
+            player_name, player_discriminator = args
+            success = self.lobby_manager.keepalive_player(player_name, player_discriminator)
             if success:
                 response['status'] = 'success'
         elif command == 'add_spectator':
@@ -280,11 +296,11 @@ class LobbyServer:
             if success:
                 response['status'] = 'success'
         elif command == 'ready':
-            lobby_id, room_id, player_name, ready = args
+            lobby_id, room_id, player_name, player_discriminator, ready = args
             lobby_id = int(lobby_id)
             room_id = int(room_id)
             ready = bool(ready)
-            success = self.lobby_manager.ready(lobby_id, room_id, player_name, ready)
+            success = self.lobby_manager.ready(lobby_id, room_id, player_name, player_discriminator, ready)
             if success:
                 response['status'] = 'success'
         elif command == 'start_game':
