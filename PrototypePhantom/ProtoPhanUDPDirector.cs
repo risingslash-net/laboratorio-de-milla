@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using MonoMod.Utils;
 using UnityEngine.SceneManagement;
 
 namespace RisingSlash.FP2Mods.PrototypePhantom;
@@ -44,6 +45,26 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         if (CheckSceneChanged())
         {
             HandleSceneChanged();
+        }
+
+        if (receivedStrings != null && receivedStrings.Count > 0)
+        {
+            try
+            {
+                foreach (var str in receivedStrings)
+                {
+                    Debug.Log("Received UDP message: " + str);
+                    if (str.Contains("@UpPl"))
+                    {
+                        HandleReceivePlayerUpdate(str);
+                    }
+                }
+                receivedStrings.Clear();
+            }
+            catch
+            {
+                
+            }
         }
     }
 
@@ -90,11 +111,6 @@ public class ProtoPhanUDPDirector : MonoBehaviour
                 var txt = data.ToString();
                 //var txt = Encoding.Convert(Encoding.Default, Encoding.UTF8, data);
                 //mainThread.
-                Debug.Log("Received UDP message: " + txt);
-                if (txt.Contains("@UpPl"))
-                {
-                    HandleReceivePlayerUpdate(txt);
-                }
             }
         }
     }
@@ -103,6 +119,8 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     {
         try
         {
+            Debug.Log("Received Phantom Player Update");
+            Debug.Log(txt);
             PhantomStatus updatedStatus = JsonUtility.FromJson<PhantomStatus>(txt);
             LivePhantom.UpdatePlayer(updatedStatus);
         }

@@ -24,8 +24,13 @@ public class PhantomPlayerTracker : MonoBehaviour
             }
 
             var newStatus = new PhantomStatus("@UpPl", PrototypePhantom.playerName.Value, PrototypePhantom.playerDiscriminator
-                , fpplayer.currentAnimation, fpplayer.position.y, fpplayer.position.y
-                , fpplayer.velocity.x, fpplayer.velocity.y, fpplayer.angle, (int)fpplayer.characterID);
+                , fpplayer.currentAnimation
+                , (float)Math.Round(fpplayer.position.x, 2)
+                , (float)Math.Round(fpplayer.position.y, 2)
+                , (float)Math.Round(fpplayer.velocity.x, 2)
+                , (float)Math.Round(fpplayer.velocity.y, 2)
+                , (float)Math.Round(fpplayer.angle, 2)
+                , (int)fpplayer.characterID);
             ProtoPhanUDPDirector.Instance.SendData(JsonUtility.ToJson(newStatus));
             timeSinceTick -= tickTime;
         }
