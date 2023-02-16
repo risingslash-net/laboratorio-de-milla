@@ -29,6 +29,7 @@ public class PhantomPlayerTracker : MonoBehaviour
                 dirR = 0;
             }
 
+            // Consider passing localScale instead of manually setting scale?
             var newStatus = new PhantomStatus("@UpPl", PrototypePhantom.playerName.Value, PrototypePhantom.playerDiscriminator
                 , fpplayer.currentAnimation
                 , (float)Math.Round(fpplayer.position.x, 2)

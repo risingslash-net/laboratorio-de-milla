@@ -41,8 +41,11 @@ public class LivePhantom : FPBase360
         }
         else
         {
+            updatedStatus.dirR = -1;
             phantom.direction = FPDirection.FACING_LEFT;
         }
+        
+        phantom.SetScale(new Vector3(updatedStatus.dirR, phantom.scale.y, phantom.scale.z));
 
         if (phantom.charID != updatedStatus.charID)
         {
