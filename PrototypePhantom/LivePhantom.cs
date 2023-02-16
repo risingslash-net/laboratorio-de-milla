@@ -8,6 +8,7 @@ public class LivePhantom : FPBase360
     private Animator[] playerAnimators;
     public static Dictionary<string, LivePhantom> currentPhantoms;
     public string currentAnimation = "";
+    public int charID = 0;
     public static void CachePlayerAnimators()
     {
         
@@ -34,6 +35,22 @@ public class LivePhantom : FPBase360
         phantom.position = new Vector2(updatedStatus.posX, updatedStatus.posY);
         phantom.velocity = new Vector2(updatedStatus.velX, updatedStatus.velY);
         phantom.angle = updatedStatus.angle;
+        if (updatedStatus.dirR == 1)
+        {
+            phantom.direction = FPDirection.FACING_RIGHT;
+        }
+        else
+        {
+            phantom.direction = FPDirection.FACING_LEFT;
+        }
+
+        if (phantom.charID != updatedStatus.charID)
+        {
+            phantom.charID = updatedStatus.charID;
+            var animator = phantom.GetComponent<Animator>();
+            animator.runtimeAnimatorController = FPStage.player[phantom.charID].animator.runtimeAnimatorController;
+        }
+
         phantom.SetAnimation(updatedStatus.anim);
         
         // if (!phantom.currentAnimation.Equals(updatedStatus.anim))
@@ -80,6 +97,12 @@ public class LivePhantom : FPBase360
         phantom.position = fpPlayer.position;
         phantom.velocity = fpPlayer.velocity;
         phantom.angle = fpPlayer.angle;
+        phantom.charID = fpCharacterID;
+
+        phantom.useRotation = true;
+        phantom.useScaling = true;
+        phantom.terrainCollision = true;
+        phantom.interactWithObjects = true; //Maybe don't?
 
         var renderer = go.GetComponent<SpriteRenderer>();
         renderer.color = new Color(1, 1, 1, 0.7f);

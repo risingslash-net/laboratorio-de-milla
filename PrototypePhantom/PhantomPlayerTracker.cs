@@ -23,6 +23,12 @@ public class PhantomPlayerTracker : MonoBehaviour
                 return;
             }
 
+            var dirR = 1;
+            if (fpplayer.direction != FPDirection.FACING_RIGHT)
+            {
+                dirR = 0;
+            }
+
             var newStatus = new PhantomStatus("@UpPl", PrototypePhantom.playerName.Value, PrototypePhantom.playerDiscriminator
                 , fpplayer.currentAnimation
                 , (float)Math.Round(fpplayer.position.x, 2)
@@ -30,6 +36,7 @@ public class PhantomPlayerTracker : MonoBehaviour
                 , (float)Math.Round(fpplayer.velocity.x, 2)
                 , (float)Math.Round(fpplayer.velocity.y, 2)
                 , (float)Math.Round(fpplayer.angle, 2)
+                , dirR
                 , (int)fpplayer.characterID);
             ProtoPhanUDPDirector.Instance.SendData(JsonUtility.ToJson(newStatus));
             timeSinceTick -= tickTime;

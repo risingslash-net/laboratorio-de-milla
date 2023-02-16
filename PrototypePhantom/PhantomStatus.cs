@@ -16,6 +16,7 @@ public class PhantomStatus
     public float velX = 0;
     public float velY = 0;
     public float angle = 0;
+    public int dirR = 1;
     public int charID = 0;
 
     public string ToJson()
@@ -29,7 +30,7 @@ public class PhantomStatus
         return stat;
     }
 
-    public PhantomStatus(string cmd, string pName, string pDisc, string anim, float posX, float posY, float velX, float velY, float angle, int charID)
+    public PhantomStatus(string cmd, string pName, string pDisc, string anim, float posX, float posY, float velX, float velY, float angle, int dirR, int charID)
     {
         this.cmd = cmd;
         this.pName = pName;
@@ -40,6 +41,7 @@ public class PhantomStatus
         this.velX = velX;
         this.velY = velY;
         this.angle = angle;
+        this.dirR = dirR;
         this.charID = charID;
     }
 }

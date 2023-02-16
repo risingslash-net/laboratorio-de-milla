@@ -53,7 +53,7 @@ public class ProtoPhanUDPDirector : MonoBehaviour
             {
                 foreach (var str in receivedStrings)
                 {
-                    Debug.Log("Received UDP message: " + str);
+                    //Debug.Log("Received UDP message: " + str);
                     if (str.Contains("@UpPl"))
                     {
                         HandleReceivePlayerUpdate(str);
@@ -119,8 +119,8 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     {
         try
         {
-            Debug.Log("Received Phantom Player Update");
-            Debug.Log(txt);
+            //Debug.Log("Received Phantom Player Update");
+            //Debug.Log(txt);
             PhantomStatus updatedStatus = JsonUtility.FromJson<PhantomStatus>(txt);
             LivePhantom.UpdatePlayer(updatedStatus);
         }
