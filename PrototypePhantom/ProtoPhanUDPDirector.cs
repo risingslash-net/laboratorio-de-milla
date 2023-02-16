@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.SceneManagement;
 
 namespace RisingSlash.FP2Mods.PrototypePhantom;
 
@@ -15,6 +16,9 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     public static ProtoPhanUDPDirector Instance;
 
     public static List<string> receivedStrings = new List<string>();
+
+    public string currentSceneName = "";
+    public string previousSceneName = "";
 
     public int port = 23913;
 
@@ -35,6 +39,14 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         udpThread.Start(new object[]{Thread.CurrentThread, receivedStrings});
     }
 
+    public void Update()
+    {
+        if (CheckSceneChanged())
+        {
+            HandleSceneChanged();
+        }
+    }
+
     void ReceiveData(object args)
     {
         var arrArgs = (object[])args;
@@ -51,6 +63,11 @@ public class ProtoPhanUDPDirector : MonoBehaviour
                 var txt = Encoding.UTF8.GetString(data);
                 //mainThread.
                 receivedStringsLocal.Add(txt);
+                if (receivedStringsLocal.Count > 50)
+                {
+                    receivedStringsLocal.RemoveAt(0);
+                }
+
                 Debug.Log("Received UDP message: " + txt);
             }
             // process data received here
@@ -69,12 +86,29 @@ public class ProtoPhanUDPDirector : MonoBehaviour
             byte[] data = udpClient.Receive(ref anyIP);
             if (data.Length > 4)
             {
+                // process data received here
                 var txt = data.ToString();
                 //var txt = Encoding.Convert(Encoding.Default, Encoding.UTF8, data);
                 //mainThread.
                 Debug.Log("Received UDP message: " + txt);
+                if (txt.Contains("@UpPl"))
+                {
+                    HandleReceivePlayerUpdate(txt);
+                }
             }
-            // process data received here
+        }
+    }
+
+    public void HandleReceivePlayerUpdate(string txt)
+    {
+        try
+        {
+            PhantomStatus updatedStatus = JsonUtility.FromJson<PhantomStatus>(txt);
+            LivePhantom.UpdatePlayer(updatedStatus);
+        }
+        catch
+        {
+            
         }
     }
 
@@ -134,5 +168,21 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     {
         var go = new GameObject("ProtoPhanUDPDirector");
         go.AddComponent<ProtoPhanUDPDirector>();
+    }
+
+    public bool CheckSceneChanged()
+    {
+        bool changed = false;
+        previousSceneName = currentSceneName;
+        currentSceneName = SceneManager.GetActiveScene().name;
+        
+        changed = (!currentSceneName.Equals(previousSceneName));
+
+        return changed;
+    }
+
+    public void HandleSceneChanged()
+    {
+        PhantomPlayerTracker.BindToMainPlayer();
     }
 }
