@@ -19,11 +19,11 @@ class LobbyManager:
         #return self.lobbies[lobby_id].rooms[room_id].players[f'{player_name}#{player_discriminator}'].set_ready(ready)
         return self.all_players[f'{player_name}#{player_discriminator}'].set_ready(ready)
 
-    def add_spectator(self, lobby_id, room_id):
-        return self.lobbies[lobby_id].add_spectator(room_id)
+    def add_spectator(self, lobby_id, room_id, address):
+        return self.lobbies[lobby_id].add_spectator(room_id, address)
 
-    def remove_spectator(self, lobby_id, room_id):
-        return self.lobbies[lobby_id].remove_spectator(room_id)
+    def remove_spectator(self, lobby_id, room_id, address):
+        return self.lobbies[lobby_id].remove_spectator(room_id, address)
 
     def get_room_status(self, lobby_id, room_id):
         return self.lobbies[lobby_id].get_room_status(room_id)
@@ -86,11 +86,11 @@ class Lobby:
     def remove_player(self, room_id, player_name, player_discriminator):
         return self.rooms[room_id].remove_player(player_name, player_discriminator)
 
-    def add_spectator(self, room_id):
-        return self.rooms[room_id].add_spectator()
+    def add_spectator(self, room_id, address):
+        return self.rooms[room_id].add_spectator(address)
 
-    def remove_spectator(self, room_id):
-        return self.rooms[room_id].remove_spectator()
+    def remove_spectator(self, room_id, address):
+        return self.rooms[room_id].remove_spectator(address)
 
     def get_room_status(self, room_id):
         return self.rooms[room_id].get_status()
@@ -144,16 +144,16 @@ class Room:
         print(server.lobby_manager.all_players)
         return True
 
-    def add_spectator(self):
+    def add_spectator(self, address):
         if len(self.spectators) >= 12:
             return False
-        self.spectators.append(None)
+        self.spectators.append(address)
         return True
 
-    def remove_spectator(self):
+    def remove_spectator(self, address):
         if len(self.spectators) == 0:
             return False
-        self.spectators.pop()
+        self.spectators.remove(address)
         return True
 
     def get_status(self):
@@ -178,6 +178,15 @@ class Room:
             return False
         map_name = max(self.map_votes, key=self.map_votes.get)
         self.started = True
+        response = {
+            'command': 'start_game',
+            'args': [map_name]
+        }
+        wrapped_response = {'pscw': response}
+        for player in self.players.values():
+            self.socket.sendto(json.dumps(wrapped_response, cls=PlayerEncoder).encode(), player.address)
+        for spectator in self.spectators:
+            self.socket.sendto(json.dumps(wrapped_response, cls=PlayerEncoder).encode(), spectator)
         # start game with map_name
         return True
 
@@ -307,14 +316,14 @@ class LobbyServer:
             lobby_id, room_id = args
             lobby_id = int(lobby_id)
             room_id = int(room_id)
-            success = self.lobby_manager.add_spectator(lobby_id, room_id)
+            success = self.lobby_manager.add_spectator(lobby_id, room_id, address)
             if success:
                 response['status'] = 'success'
         elif command == 'remove_spectator':
             lobby_id, room_id = args
             lobby_id = int(lobby_id)
             room_id = int(room_id)
-            success = self.lobby_manager.remove_spectator(lobby_id, room_id)
+            success = self.lobby_manager.remove_spectator(lobby_id, room_id, address)
             if success:
                 response['status'] = 'success'
         elif command == 'get_room_status':
