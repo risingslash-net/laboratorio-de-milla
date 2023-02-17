@@ -104,6 +104,7 @@ public class LivePhantom : FPBase360
 
         phantom.useRotation = true;
         phantom.useScaling = true;
+        phantom.SetScale(new Vector3(1, 1, 1));
         phantom.terrainCollision = true;
         phantom.interactWithObjects = true; //Maybe don't?
 
