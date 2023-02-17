@@ -186,10 +186,13 @@ class Room:
             i.request_keepalive()
 
     def keepalive_player(self, player_name, player_discriminator):
+        player_to_keepalive = None
         for i in self.players.values():
             if (i.player_name == player_name and i.player_discriminator == player_discriminator):
-                i.keepalive()
+                player_to_keepalive = i
                 break
+        if player_to_keepalive:
+            player_to_keepalive.keepalive()
 
 
 class Player:
