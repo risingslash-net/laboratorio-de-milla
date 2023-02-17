@@ -219,7 +219,7 @@ class PlayerEncoder(json.JSONEncoder):
         return super().default(obj)
 
 class LobbyServer:
-    def __init__(self, address=('localhost', 20232)):
+    def __init__(self, address=('', 20232)):
         self.versionNumber = "1.0.230215"
         print(f'[Phantom Chase v{self.versionNumber}]\n')
         print(f'Creating a new instance of the Phantom lobby server for {address}\n')

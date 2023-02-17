@@ -17,9 +17,15 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     public static ProtoPhanUDPDirector Instance;
 
     public static List<string> receivedStrings = new List<string>();
+    public static HashSet<IPEndPoint> endpointsToUpdate = new HashSet<IPEndPoint>();
+    public static HashSet<IPEndPoint> endpointLobbyServers = new HashSet<IPEndPoint>();
+    public static IPEndPoint endpointCurrentLobbyServer = null;
 
     public string currentSceneName = "";
     public string previousSceneName = "";
+
+    public static int currentLobbyID = 0;
+    public static int currentRoomID = 0;
 
     public int port = 23913;
 
@@ -147,6 +153,18 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     {
         var data = Encoding.UTF8.GetBytes(text);
         UdpClient client = new UdpClient();
+        foreach (var endpoint in endpointsToUpdate)
+        {
+            // Potential gotcha: We're _assuming_ this port is open,
+            // but we don't know that the remote _game_ is listening on the port the endpoint is sending from. 
+            client.Send(data, data.Length, endpoint.Address.ToString(), port);
+        }
+    }
+    
+    public void SendDataLocal(string text)
+    {
+        var data = Encoding.UTF8.GetBytes(text);
+        UdpClient client = new UdpClient();
         client.Send(data, data.Length, "127.0.0.1", port);
     }
     
@@ -182,10 +200,22 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         }
     }
 
-    public static void Instantiate()
+    public static ProtoPhanUDPDirector Instantiate()
     {
         var go = new GameObject("ProtoPhanUDPDirector");
-        go.AddComponent<ProtoPhanUDPDirector>();
+        var instance = go.AddComponent<ProtoPhanUDPDirector>();
+        endpointCurrentLobbyServer = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 20232);
+        return instance;
+    }
+
+    public static void AddConnectionToUpdate(string ipAddress, int port)
+    {
+        endpointsToUpdate.Add(new IPEndPoint(IPAddress.Parse(ipAddress), port));
+    }
+    
+    public static void AddLobbyServer(string ipAddress, int port)
+    {
+        endpointsToUpdate.Add(new IPEndPoint(IPAddress.Parse(ipAddress), port));
     }
 
     public bool CheckSceneChanged()
