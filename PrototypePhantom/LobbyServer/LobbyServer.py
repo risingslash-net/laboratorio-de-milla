@@ -45,15 +45,34 @@ class LobbyManager:
 
     def kick_player(self, player_name,  player_discriminator):
         player_to_remove = None
+        room_to_remove_from = None
         for i in self.lobbies.values():
             for j in i.rooms.values():
                 for k in j.players.values():
                     if k.player_name == player_name and k.player_discriminator == player_discriminator:
                         player_to_remove = k
+                        room_to_remove_from = j
                         break
                 if player_to_remove:
-                    j.remove_player(player_to_remove.player_name, player_to_remove.player_discriminator)
                     break
+            if player_to_remove:
+                break
+        if player_to_remove:
+            print(f'Keepalive Idle Kick {player_to_remove}')
+            room_to_remove_from.remove_player(player_to_remove.player_name, player_to_remove.player_discriminator)
+            
+    def kick_all_idle_players(self):
+        player_to_remove = None
+        players_to_remove = []
+        for i in self.lobbies.values():
+            for j in i.rooms.values():
+                for k in j.players.values():
+                    if k.missed_keepalive_count > 2:
+                        players_to_remove.append(k)
+                        break
+        
+        for p in players_to_remove:
+            self.kick_player(p.player_name, p.player_discriminator)
 
 
 class Lobby:
@@ -107,14 +126,22 @@ class Room:
         return True
 
     def remove_player(self, player_name, player_discriminator):
-        if player_name not in self.players:
+        player_key = f'{player_name}#{player_discriminator}'
+        if player_key not in self.players.keys():
+            print(f'Cannot find a player with key ({player_key})')
             return False
-        if player_discriminator not in self.players:
-            return False
-        print(f'Removing: {player_name}#{player_discriminator}')
-        print(self.players[f'{player_name}#{player_discriminator}'])
-        del self.players[f'{player_name}#{player_discriminator}']
-        del server.lobby_manager.all_players[f'{player_name}#{player_discriminator}']
+
+        print('Before removals: ')
+        print(self.players)
+        print(server.lobby_manager.all_players)
+        
+        print(f'Removing: {player_key}')
+        print(self.players[player_key])
+        del self.players[player_key]
+        del server.lobby_manager.all_players[player_key]
+        print('After removals: ')
+        print(self.players)
+        print(server.lobby_manager.all_players)
         return True
 
     def add_spectator(self):
@@ -247,6 +274,8 @@ class LobbyServer:
         response = {'status': 'error'}
 
         print(f'addr({address}) sent: {command} with args {args}')
+        
+        self.lobby_manager.kick_all_idle_players()
 
         if command == 'add_player':
             lobby_id, room_id, player_name, player_discriminator, character_id = args
