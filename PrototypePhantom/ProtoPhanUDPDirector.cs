@@ -27,7 +27,8 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     public static int currentLobbyID = 0;
     public static int currentRoomID = 0;
 
-    public int port = 23913;
+    public static int defaultPhantomPort = 23913;
+    public static int defaultLobbyPort = 20232;
 
     void Awake()
     {
@@ -79,7 +80,7 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         var arrArgs = (object[])args;
         Thread mainThread = (Thread)arrArgs[0];
         List<string> receivedStringsLocal = (List<string>)arrArgs[1];
-        udpClient = new UdpClient(port);
+        udpClient = new UdpClient(defaultPhantomPort);
         while (true)
         {
             IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
@@ -106,7 +107,7 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     {
         var arrArgs = (object[])args;
         Thread mainThread = (Thread)arrArgs[0];
-        udpClient = new UdpClient(port);
+        udpClient = new UdpClient(defaultPhantomPort);
         while (true)
         {
             IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
@@ -157,7 +158,7 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         {
             // Potential gotcha: We're _assuming_ this port is open,
             // but we don't know that the remote _game_ is listening on the port the endpoint is sending from. 
-            client.Send(data, data.Length, endpoint.Address.ToString(), port);
+            client.Send(data, data.Length, endpoint.Address.ToString(), defaultPhantomPort);
         }
     }
     
@@ -165,14 +166,14 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     {
         var data = Encoding.UTF8.GetBytes(text);
         UdpClient client = new UdpClient();
-        client.Send(data, data.Length, "127.0.0.1", port);
+        client.Send(data, data.Length, "127.0.0.1", defaultPhantomPort);
     }
     
     public void TestSendData()
     {
         var data = Encoding.UTF8.GetBytes("Hello world.");
         UdpClient client = new UdpClient();
-        client.Send(data, data.Length, "127.0.0.1", port);
+        client.Send(data, data.Length, "127.0.0.1", defaultPhantomPort);
     }
     
     public void TestSendCommandToLobbyServer()
@@ -180,12 +181,12 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         PhantomServerCommand.TestAddPlayer();
         var data = Encoding.UTF8.GetBytes(PhantomServerCommand.AddPlayer());
         UdpClient client = new UdpClient();
-        client.Send(data, data.Length, "127.0.0.1", port);
-        client.Send(data, data.Length, "127.0.0.1", 20232); //Lobby Server
+        client.Send(data, data.Length, "127.0.0.1", defaultPhantomPort);
+        client.Send(data, data.Length, "127.0.0.1", defaultLobbyPort); //Lobby Server
         
         data = Encoding.UTF8.GetBytes(PhantomServerCommand.RemovePlayer());
-        client.Send(data, data.Length, "127.0.0.1", port);
-        client.Send(data, data.Length, "127.0.0.1", 20232); //Lobby Server
+        client.Send(data, data.Length, "127.0.0.1", defaultPhantomPort);
+        client.Send(data, data.Length, "127.0.0.1", defaultLobbyPort); //Lobby Server
     }
 
     void OnApplicationQuit()
@@ -204,7 +205,7 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     {
         var go = new GameObject("ProtoPhanUDPDirector");
         var instance = go.AddComponent<ProtoPhanUDPDirector>();
-        endpointCurrentLobbyServer = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 20232);
+        endpointCurrentLobbyServer = new IPEndPoint(IPAddress.Parse("127.0.0.1"), defaultLobbyPort);
         return instance;
     }
 
@@ -213,9 +214,19 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         endpointsToUpdate.Add(new IPEndPoint(IPAddress.Parse(ipAddress), port));
     }
     
+    public static void AddConnectionToUpdate(string ipAddress)
+    {
+        AddConnectionToUpdate(ipAddress, defaultPhantomPort);
+    }
+    
     public static void AddLobbyServer(string ipAddress, int port)
     {
         endpointsToUpdate.Add(new IPEndPoint(IPAddress.Parse(ipAddress), port));
+    }
+    
+    public static void AddLobbyServer(string ipAddress)
+    {
+        AddLobbyServer(ipAddress, defaultLobbyPort);
     }
 
     public bool CheckSceneChanged()
