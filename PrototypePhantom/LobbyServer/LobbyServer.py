@@ -182,7 +182,8 @@ class Room:
         return True
 
     def request_keepalives(self):
-        for i in self.players.values():
+        temp_players = self.players.copy().values()
+        for i in temp_players:
             i.request_keepalive()
 
     def keepalive_player(self, player_name, player_discriminator):
@@ -272,6 +273,8 @@ class LobbyServer:
 
     def handle_client(self, data, address):
         message = json.loads(data.decode())
+        if 'request' in message:
+            message = message['request'] # Allow one level depth for Unity's top level issues.
         command = message['command']
         args = message['args']
         response = {'status': 'error'}
@@ -344,8 +347,9 @@ class LobbyServer:
                 response['status'] = 'success'
         else:
             response['message'] = 'Invalid command'
-
-        self.socket.sendto(json.dumps(response, cls=PlayerEncoder).encode(), address)
+            
+        wrapped_response = {'response': response}
+        self.socket.sendto(json.dumps(wrapped_response, cls=PlayerEncoder).encode(), address) # more BS to deal with Unity annoyances.
 
 
 if __name__ == '__main__':
