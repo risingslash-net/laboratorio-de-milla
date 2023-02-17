@@ -24,7 +24,7 @@ namespace RisingSlash.FP2Mods.PrototypePhantom
             
             lobbyServers = Config.Bind("General",      // The section under which the option is shown
                 "LobbyServers",  // The key of the configuration option in the configuration file
-                "127.0.0.1:20232", // The default value
+                "phantomchase.risingslash.net:20232,127.0.0.1:20232", // The default value
                 "A comma-separated list of ipaddresses and ports that host lobby servers to use for matching up with other players. The first one listed will be joined by default."); // Description of the option to show in the config file
             
             var director = ProtoPhanUDPDirector.Instantiate();
@@ -35,7 +35,8 @@ namespace RisingSlash.FP2Mods.PrototypePhantom
                     continue;
                 }
 
-                var connectInfo = lobbyConnectionString.Split(':');
+                var connectInfo = lobbyConnectionString.Trim().Split(':');
+                ProtoPhanUDPDirector.AddLobbyServer(connectInfo[0], int.Parse(connectInfo[1]));
                 ProtoPhanUDPDirector.AddLobbyServer(connectInfo[0], int.Parse(connectInfo[1]));
             }
         }

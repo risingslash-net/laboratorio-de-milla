@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using MonoMod.Utils;
@@ -18,7 +19,7 @@ public class ProtoPhanUDPDirector : MonoBehaviour
 
     public static List<string> receivedStrings = new List<string>();
     public static HashSet<IPEndPoint> endpointsToUpdate = new HashSet<IPEndPoint>();
-    public static HashSet<IPEndPoint> endpointLobbyServers = new HashSet<IPEndPoint>();
+    public static List<IPEndPoint> endpointLobbyServers = new List<IPEndPoint>();
     public static IPEndPoint endpointCurrentLobbyServer = null;
 
     public string currentSceneName = "";
@@ -29,6 +30,8 @@ public class ProtoPhanUDPDirector : MonoBehaviour
 
     public static int defaultPhantomPort = 23913;
     public static int defaultLobbyPort = 20232;
+    
+    public static PhantomLobbyResponse phantomLobbyResponse = null;
 
     void Awake()
     {
@@ -136,6 +139,15 @@ public class ProtoPhanUDPDirector : MonoBehaviour
             
         }
     }
+    
+    public void HandleReceivedUpdatedRoomState(string jsonUpdatedRoomState)
+    {
+        phantomLobbyResponse = JsonUtility.FromJson<PhantomLobbyResponse>(jsonUpdatedRoomState);
+        foreach (var player in phantomLobbyResponse.data.players)
+        {
+            
+        }
+    }
 
     public void SendData(byte[] data, string ipAddress, int remotePort)
     {
@@ -160,6 +172,18 @@ public class ProtoPhanUDPDirector : MonoBehaviour
             // but we don't know that the remote _game_ is listening on the port the endpoint is sending from. 
             client.Send(data, data.Length, endpoint.Address.ToString(), defaultPhantomPort);
         }
+    }
+    
+    public void SendDataToLobby(string text)
+    {
+        if (endpointCurrentLobbyServer == null)
+        {
+            return;
+        }
+
+        var data = Encoding.UTF8.GetBytes(text);
+        UdpClient client = new UdpClient();
+        client.Send(data, data.Length, endpointCurrentLobbyServer.Address.ToString(), endpointCurrentLobbyServer.Port);
     }
     
     public void SendDataLocal(string text)
@@ -209,24 +233,67 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         return instance;
     }
 
-    public static void AddConnectionToUpdate(string ipAddress, int port)
+    public static void AddConnectionToUpdate(string hostName, int port)
     {
-        endpointsToUpdate.Add(new IPEndPoint(IPAddress.Parse(ipAddress), port));
+        var endpoint = GetIPEndPointFromHostName(hostName, port);
+        if (endpointsToUpdate.Contains(endpoint))
+        {
+            return;
+        }
+
+        endpointsToUpdate.Add(endpoint);
     }
     
     public static void AddConnectionToUpdate(string ipAddress)
     {
         AddConnectionToUpdate(ipAddress, defaultPhantomPort);
     }
-    
-    public static void AddLobbyServer(string ipAddress, int port)
+
+    // Snippet from: https://stackoverflow.com/questions/2101777/creating-an-ipendpoint-from-a-hostname
+    public static IPEndPoint GetIPEndPointFromHostName(string hostName, int port, bool throwIfMoreThanOneIP = false)
     {
-        endpointsToUpdate.Add(new IPEndPoint(IPAddress.Parse(ipAddress), port));
+        var addresses = System.Net.Dns.GetHostAddresses(hostName);
+        if (addresses.Length == 0)
+        {
+            throw new ArgumentException(
+                "Unable to retrieve address from specified host name.", 
+                "hostName"
+            );
+        }
+        else if (throwIfMoreThanOneIP && addresses.Length > 1)
+        {
+            throw new ArgumentException(
+                "There is more that one IP address to the specified host.", 
+                "hostName"
+            );
+        }
+        return new IPEndPoint(addresses[0], port); // Port gets validated here.
+    }
+    
+    public static void AddLobbyServer(string hostName, int port)
+    {
+        var endPoint = GetIPEndPointFromHostName(hostName, port);
+        if (endpointLobbyServers.Contains(endPoint))
+        {
+            return;
+        }
+
+        endpointLobbyServers.Add(endPoint);
+        SetLobbyServer(0);
     }
     
     public static void AddLobbyServer(string ipAddress)
     {
         AddLobbyServer(ipAddress, defaultLobbyPort);
+    }
+    
+    public static void SetLobbyServer(string hostname, int port)
+    {
+        endpointCurrentLobbyServer = GetIPEndPointFromHostName(hostname, port);
+    }
+    public static void SetLobbyServer(int index)
+    {
+        endpointCurrentLobbyServer = endpointLobbyServers[index];
     }
 
     public bool CheckSceneChanged()
@@ -243,5 +310,16 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     public void HandleSceneChanged()
     {
         PhantomPlayerTracker.BindToMainPlayer();
+        RequestUpdatedRoomState();
+    }
+
+    public void RequestUpdatedRoomState()
+    {
+        var request = new PhantomLobbyRequest();
+        request.command = "get_room_status";
+        request.args = new List<object>() { 0, 0};
+        var reqJSON = JsonUtility.ToJson(request);
+        Debug.Log(reqJSON);
+        SendDataToLobby(reqJSON);
     }
 }

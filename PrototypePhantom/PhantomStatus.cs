@@ -8,6 +8,7 @@ public class PhantomStatus
 {
     //public int id = 0; // Number ID would be a good optimization but I don't want to work on that right now.
     public string cmd = "@UpPl";
+    public int pkid = 0;
     public string pName = "";
     public string pDisc = "";
     public string anim = "";
@@ -30,9 +31,10 @@ public class PhantomStatus
         return stat;
     }
 
-    public PhantomStatus(string cmd, string pName, string pDisc, string anim, float posX, float posY, float velX, float velY, float angle, int dirR, int charID)
+    public PhantomStatus(string cmd, int pkid, string pName, string pDisc, string anim, float posX, float posY, float velX, float velY, float angle, int dirR, int charID)
     {
         this.cmd = cmd;
+        this.pkid = pkid;
         this.pName = pName;
         this.pDisc = pDisc;
         this.anim = anim;

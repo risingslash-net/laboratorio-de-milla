@@ -8,6 +8,7 @@ public class PhantomPlayerTracker : MonoBehaviour
     public FPPlayer fpplayer;
     public float timeSinceTick = 0;
     public float tickTime = 1.0f / 30f; //Only update 30 times per second. _maybe_ allow 60. More than that is overkill.
+    public int packetCount = 0;
 
     public void Update()
     {
@@ -30,7 +31,8 @@ public class PhantomPlayerTracker : MonoBehaviour
             }
 
             // Consider passing localScale instead of manually setting scale?
-            var newStatus = new PhantomStatus("@UpPl", PrototypePhantom.playerName.Value, PrototypePhantom.playerDiscriminator
+            var newStatus = new PhantomStatus("@UpPl", packetCount 
+                ,PrototypePhantom.playerName.Value, PrototypePhantom.playerDiscriminator
                 , fpplayer.currentAnimation
                 , (float)Math.Round(fpplayer.position.x, 2)
                 , (float)Math.Round(fpplayer.position.y, 2)
@@ -41,6 +43,7 @@ public class PhantomPlayerTracker : MonoBehaviour
                 , (int)fpplayer.characterID);
             ProtoPhanUDPDirector.Instance.SendData(JsonUtility.ToJson(newStatus));
             timeSinceTick -= tickTime;
+            packetCount++;
         }
     }
 
