@@ -9,6 +9,7 @@ public class LivePhantom : FPBase360
     public static Dictionary<string, LivePhantom> currentPhantoms;
     public string currentAnimation = "";
     public int charID = 0;
+    public int lastPacketID = 0;
     public static void CachePlayerAnimators()
     {
         
@@ -30,6 +31,11 @@ public class LivePhantom : FPBase360
         else
         {
             phantom = currentPhantoms[playerKey];
+        }
+        
+        if (updatedStatus.pkid < phantom.lastPacketID)
+        {
+            return;
         }
 
         phantom.position = new Vector2(updatedStatus.posX, updatedStatus.posY);
@@ -55,7 +61,9 @@ public class LivePhantom : FPBase360
         }
 
         phantom.SetAnimation(updatedStatus.anim);
-        
+
+        phantom.lastPacketID = updatedStatus.pkid;
+
         // if (!phantom.currentAnimation.Equals(updatedStatus.anim))
         // {
         // }

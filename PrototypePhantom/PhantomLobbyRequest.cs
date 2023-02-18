@@ -6,5 +6,11 @@ namespace RisingSlash.FP2Mods.PrototypePhantom;
 public class PhantomLobbyRequest
 {
     public string command;
-    public List<object> args;
+    public string[] args = null;
+}
+
+[System.Serializable]
+public class PhantomLobbyRequestRoot
+{
+    public PhantomLobbyRequest request = new PhantomLobbyRequest();
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using MonoMod.Utils;
+using Rewired.Demos;
 using UnityEngine.SceneManagement;
 
 namespace RisingSlash.FP2Mods.PrototypePhantom;
@@ -31,6 +32,9 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     public static int defaultPhantomPort = 23913;
     public static int defaultLobbyPort = 20232;
     
+    public static string playerName = "Phantom Chaser";
+    public static string playerDiscriminator = "0000";
+    
     public static PhantomLobbyResponse phantomLobbyResponse = null;
 
     void Awake()
@@ -48,6 +52,11 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         udpThread = new Thread(ReceiveData);
         udpThread.IsBackground = true;      
         udpThread.Start(new object[]{Thread.CurrentThread, receivedStrings});
+        
+        Debug.Log("----------------------------------------");
+        Debug.Log("Example:");
+        Debug.Log(PhantomLobbyResponse.GenerateExampleJSON());
+        Debug.Log("----------------------------------------");
     }
 
     public void Update()
@@ -59,22 +68,27 @@ public class ProtoPhanUDPDirector : MonoBehaviour
 
         if (receivedStrings != null && receivedStrings.Count > 0)
         {
-            try
+            foreach (var str in receivedStrings)
             {
-                foreach (var str in receivedStrings)
+                try
                 {
                     //Debug.Log("Received UDP message: " + str);
                     if (str.Contains("@UpPl"))
                     {
                         HandleReceivePlayerUpdate(str);
                     }
+                    else if (str.Contains("player_names") && str.Contains("map_votes_values")) // Probably just just add a more specific key in the lobby response.
+                    {
+                        HandleReceivedUpdatedRoomState(str);
+                    }
                 }
-                receivedStrings.Clear();
+                catch
+                {
+                    Debug.LogError("Something went wrong when handling received UDP messages.");
+                    Debug.LogError(str);
+                }
             }
-            catch
-            {
-                
-            }
+            receivedStrings.Clear();
         }
     }
 
@@ -142,10 +156,44 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     
     public void HandleReceivedUpdatedRoomState(string jsonUpdatedRoomState)
     {
-        phantomLobbyResponse = JsonUtility.FromJson<PhantomLobbyResponse>(jsonUpdatedRoomState);
-        foreach (var player in phantomLobbyResponse.data.players)
+        try
         {
-            
+            Debug.Log(jsonUpdatedRoomState);
+            Debug.Log("------------------");
+
+            phantomLobbyResponse = JsonUtility.FromJson<PhantomLobbyResponse>(jsonUpdatedRoomState);
+            Debug.Log(phantomLobbyResponse);
+
+            if (phantomLobbyResponse.player_names != null && phantomLobbyResponse.player_names.Length > 0)
+            {
+                for (int i = 0; i < phantomLobbyResponse.player_names.Length; i++)
+                {
+                    if (phantomLobbyResponse.player_names[0] == null)
+                    {
+                        Debug.Log("Player object appears to be null.");
+                        continue;
+                    }
+                    else
+                    {
+                        Debug.Log(phantomLobbyResponse.addressHosts[i]);
+                        Debug.Log(phantomLobbyResponse.addressPorts[i]);
+                        Debug.Log(phantomLobbyResponse.character_ids[i]);
+                        Debug.Log(phantomLobbyResponse.readys[i]);
+                    }
+
+                    var playerEndpoint = GetIPEndPointFromHostName(phantomLobbyResponse.addressHosts[i]
+                        ,int.Parse(phantomLobbyResponse.addressPorts[i]));
+                    if (endpointsToUpdate.Contains(playerEndpoint))
+                    {
+                        continue;
+                    }
+                    endpointsToUpdate.Add(playerEndpoint);
+                } 
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
         }
     }
 
@@ -182,7 +230,12 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         }
 
         var data = Encoding.UTF8.GetBytes(text);
-        UdpClient client = new UdpClient();
+        UdpClient client = udpClient;
+        if (udpClient == null)
+        {
+            client = new UdpClient(defaultPhantomPort);
+        }
+
         client.Send(data, data.Length, endpointCurrentLobbyServer.Address.ToString(), endpointCurrentLobbyServer.Port);
     }
     
@@ -211,6 +264,27 @@ public class ProtoPhanUDPDirector : MonoBehaviour
         data = Encoding.UTF8.GetBytes(PhantomServerCommand.RemovePlayer());
         client.Send(data, data.Length, "127.0.0.1", defaultPhantomPort);
         client.Send(data, data.Length, "127.0.0.1", defaultLobbyPort); //Lobby Server
+    }
+    
+    public string AddPlayerToLobbyServer()
+    {
+        var jsonOut = "";
+        var characterID = 0;
+        if (FPStage.currentStage != null)
+        {
+            var fpp = FPStage.currentStage.GetPlayerInstance_FPPlayer();
+            if (fpp != null)
+            {
+                characterID = (int)fpp.characterID;
+            }
+        }
+
+        jsonOut = PhantomServerCommand.AddPlayer(0, 0
+            , playerName, playerDiscriminator, characterID);
+        var data = Encoding.UTF8.GetBytes(jsonOut);
+        UdpClient client = new UdpClient();
+        client.Send(data, data.Length, endpointCurrentLobbyServer.Address.ToString(), endpointCurrentLobbyServer.Port);
+        return jsonOut;
     }
 
     void OnApplicationQuit()
@@ -310,16 +384,45 @@ public class ProtoPhanUDPDirector : MonoBehaviour
     public void HandleSceneChanged()
     {
         PhantomPlayerTracker.BindToMainPlayer();
+        AddPlayerToLobbyServer();
         RequestUpdatedRoomState();
     }
 
-    public void RequestUpdatedRoomState()
+    public string RequestUpdatedRoomState()
     {
-        var request = new PhantomLobbyRequest();
-        request.command = "get_room_status";
-        request.args = new List<object>() { 0, 0};
-        var reqJSON = JsonUtility.ToJson(request);
-        Debug.Log(reqJSON);
-        SendDataToLobby(reqJSON);
+        var reqJSON = "";
+        try
+        {
+            var root = new PhantomLobbyRequestRoot();
+            root.request.command = "get_room_status";
+            root.request.args = new string[] { "0", "0"};
+            reqJSON = JsonUtility.ToJson(root.request);
+            Debug.Log(reqJSON);
+            SendDataToLobby(reqJSON);
+        }
+        catch
+        {
+            Debug.LogError("Something blew up when trying to request the updated room state from the lobby, but we're going to ignore it.");
+        }
+
+        
+        return reqJSON;
+    }
+    
+    public struct Scrunch
+    {
+        public string command;
+        public object[] args;
+    }
+    
+    public struct ScrunchWrapSupreme
+    {
+        public Scrunch request;
+    }
+
+    public static void SetPlayerNameAndDiscriminator(string playerNameValue, string discriminatorValue)
+    {
+        playerName = playerNameValue;
+        playerDiscriminator = discriminatorValue;
     }
 }

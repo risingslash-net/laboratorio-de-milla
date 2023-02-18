@@ -134,11 +134,14 @@ class Room:
         print('Before removals: ')
         print(self.players)
         print(server.lobby_manager.all_players)
-        
+
         print(f'Removing: {player_key}')
         print(self.players[player_key])
-        del self.players[player_key]
-        del server.lobby_manager.all_players[player_key]
+        try:
+            del self.players[player_key]
+            del server.lobby_manager.all_players[player_key]
+        except: 
+            print('Failed to remove player. Continuing...')
         print('After removals: ')
         print(self.players)
         print(server.lobby_manager.all_players)
@@ -157,11 +160,50 @@ class Room:
         return True
 
     def get_status(self):
+        player_names = []
+        player_discriminators = []
+        character_ids = []
+        readys = []
+        votes = []
+        addressHosts = []
+        addressPorts = []
+        missed_keepalive_counts = []
+        
+        for i in self.players.values():
+            player_names.append(i.player_name)
+            player_discriminators.append(i.player_discriminator)
+            character_ids.append(i.character_id)
+            readys.append(i.ready)
+            votes.append(i.vote)
+            addressHosts.append(i.address[0])
+            addressPorts.append(i.address[1])
+            missed_keepalive_counts.append(i.missed_keepalive_count)
         return {
-            'players': self.players,
+            #'players': self.players,
+            'player_names': player_names,
+            'player_discriminators': player_discriminators,
+            'character_ids': character_ids,
+            'readys': readys,
+            'votes': votes,
+            'addressHosts': addressHosts,
+            'addressPorts': addressPorts,
+            'missed_keepalive_counts': missed_keepalive_counts,
             'spectators': len(self.spectators),
-            'map_votes': self.map_votes
+            #'map_votes': self.map_votes,
+            'map_votes_keys': list(self.map_votes.copy().keys()),
+            'map_votes_values': list(self.map_votes.copy().values())
         }
+
+    # def get_status_old(self):
+    #     return {
+    #         #'players': self.players,
+    #         'players_keys': list(self.players.copy().keys()),
+    #         'players_values': list(self.players.copy().values()),
+    #         'spectators': len(self.spectators),
+    #         #'map_votes': self.map_votes,
+    #         'map_votes_keys': list(self.map_votes.copy().keys()),
+    #         'map_votes_values': list(self.map_votes.copy().values())
+    #     }
 
     def vote_for_map(self, player_name, map_name):
         if player_name not in self.players:
@@ -282,6 +324,7 @@ class LobbyServer:
 
     def handle_client(self, data, address):
         message = json.loads(data.decode())
+        print(f'DEBUG:{data}\n')
         if 'request' in message:
             message = message['request'] # Allow one level depth for Unity's top level issues.
         command = message['command']
@@ -330,8 +373,7 @@ class LobbyServer:
             lobby_id, room_id = args
             lobby_id = int(lobby_id)
             room_id = int(room_id)
-            response['status'] = 'success'
-            response['data'] = self.lobby_manager.get_room_status(lobby_id, room_id)
+            response = self.lobby_manager.get_room_status(lobby_id, room_id)
         elif command == 'vote_for_map':
             lobby_id, room_id, player_name, map_name = args
             lobby_id = int(lobby_id)
@@ -357,8 +399,8 @@ class LobbyServer:
         else:
             response['message'] = 'Invalid command'
             
-        wrapped_response = {'response': response}
-        self.socket.sendto(json.dumps(wrapped_response, cls=PlayerEncoder).encode(), address) # more BS to deal with Unity annoyances.
+        #wrapped_response = {'response': response}
+        self.socket.sendto(json.dumps(response, cls=PlayerEncoder).encode(), address) # more BS to deal with Unity annoyances.
 
 
 if __name__ == '__main__':

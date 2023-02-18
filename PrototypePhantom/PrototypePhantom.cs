@@ -37,8 +37,10 @@ namespace RisingSlash.FP2Mods.PrototypePhantom
 
                 var connectInfo = lobbyConnectionString.Trim().Split(':');
                 ProtoPhanUDPDirector.AddLobbyServer(connectInfo[0], int.Parse(connectInfo[1]));
-                ProtoPhanUDPDirector.AddLobbyServer(connectInfo[0], int.Parse(connectInfo[1]));
+                //ProtoPhanUDPDirector.AddLobbyServer(connectInfo[0], int.Parse(connectInfo[1]));
+                
             }
+            ProtoPhanUDPDirector.SetPlayerNameAndDiscriminator(playerName.Value, playerDiscriminator);
         }
     }
 }
